@@ -1,0 +1,1 @@
+export const KODIK_TOKEN = 'your-kodik-token';

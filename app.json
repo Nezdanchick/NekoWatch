@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Neko Watch",
+    "slug": "expo-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./title.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#000000"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nezdanchick.neko-watch"
+    },
+    "android": {
+      "package": "com.nezdanchick.neko_watch",
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "androidNavigationBar": {
+      "visible": "immersive",
+      "backgroundColor": "#000000",
+      "barStyle": "light-content"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "93bf8413-d35a-4494-857b-84c09ed53b87"
+      }
+    }
+  }
+}
