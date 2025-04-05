@@ -5,6 +5,9 @@ android/
 ios/
 *.apk
 
+# kodik token
+types/kodik-token.ts
+
 # dependencies
 node_modules/
 
