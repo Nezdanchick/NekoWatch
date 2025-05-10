@@ -5,9 +5,10 @@ import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { AnimeShort } from '@/types/anime';
 import AnimeCard from '@/components/AnimeCard';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 export default function FavoritesScreen() {
+  const { colors } = useThemeStore();
   const { favorites } = useAnimeStore();
   const [favoriteAnimes, setFavoriteAnimes] = useState<AnimeShort[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +27,7 @@ export default function FavoritesScreen() {
     try {
       // Загружаем данные последовательно, чтобы избежать rate limiting
       const animeResults: AnimeShort[] = [];
-      
+
       for (const id of favorites) {
         try {
           const animeDetails = await fetchAnimeDetails(id);
@@ -38,7 +39,7 @@ export default function FavoritesScreen() {
           // Продолжаем загрузку других аниме
         }
       }
-      
+
       setFavoriteAnimes(animeResults);
     } catch (err) {
       setError('Ошибка при загрузке избранного');
@@ -66,19 +67,19 @@ export default function FavoritesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
-      
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+
       {loading && !refreshing ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={Colors.dark.primary} />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : error ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
         </View>
       ) : favoriteAnimes.length === 0 ? (
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>У вас пока нет избранных аниме</Text>
+          <Text style={[styles.emptyText, { color: colors.subtext }]}>У вас пока нет избранных аниме</Text>
         </View>
       ) : (
         <FlatList
@@ -91,8 +92,8 @@ export default function FavoritesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={[Colors.dark.primary]}
-              tintColor={Colors.dark.primary}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
         />
@@ -104,16 +105,10 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   listContent: {
     paddingHorizontal: 8,
@@ -130,12 +125,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    color: Colors.dark.subtext,
     fontSize: 16,
     textAlign: 'center',
   },
   errorText: {
-    color: Colors.dark.secondary,
     fontSize: 16,
     textAlign: 'center',
   },

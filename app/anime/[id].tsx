@@ -7,9 +7,11 @@ import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
 import { AnimeDetailed } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
+import { theme } from '@/constants/theme';
 
 export default function AnimeDetailsScreen() {
+  const { colors } = useThemeStore();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const animeId = parseInt(id as string);
@@ -112,17 +114,17 @@ export default function AnimeDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.dark.primary} />
-        <Text style={styles.loadingText}>Загрузка информации...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>Загрузка информации...</Text>
       </View>
     );
   }
 
   if (error || !anime) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error || 'Аниме не найдено'}</Text>
+      <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.text }]}>{error || 'Аниме не найдено'}</Text>
       </View>
     );
   }
@@ -137,33 +139,27 @@ export default function AnimeDetailsScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: anime.russian || anime.name || 'Информация об аниме',
-        }}
-      />
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
           <Image
             source={{ uri: imageUrl }}
             style={styles.poster}
             resizeMode="cover"
           />
-          <View style={styles.overlay} />
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
             <Text style={styles.originalTitle}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
           </View>
         </View>
 
-        <View style={styles.actions}>
+        <View style={[styles.actions, { borderBottomColor: colors.border }]}>
           <View style={styles.folderButtonContainer}>
             {/* Кнопка "Избранное" */}
-            <Pressable style={styles.smallButton} onPress={toggleFavorite}>
+            <Pressable style={[styles.smallButton, { backgroundColor: colors.card }]} onPress={toggleFavorite}>
               <FontAwesome
                 name="heart"
                 size={16}
-                color={favorite ? Colors?.dark?.secondary : Colors?.dark?.text || '#FFFFFF'}
+                color={favorite ? colors.secondary : colors.text || '#FFFFFF'}
               />
             </Pressable>
 
@@ -171,7 +167,9 @@ export default function AnimeDetailsScreen() {
             <Pressable
               style={[
                 styles.folderButton,
-                !kodikTranslations.length && styles.disabledButton, // Добавляем стиль для неактивной кнопки
+                kodikTranslations.length !== 0 ?
+                  { backgroundColor: colors.card } :  // Активная кнопка
+                  { backgroundColor: colors.disabled },   // Неактивная кнопка
               ]}
               onPress={toggleTranslationsVisibility}
               disabled={!kodikTranslations.length} // Делаем кнопку неактивной, если нет озвучек
@@ -180,10 +178,10 @@ export default function AnimeDetailsScreen() {
                 <MaterialIcons
                   name={isTranslationsVisible ? 'expand-less' : 'expand-more'}
                   size={20}
-                  color={Colors?.dark?.text || '#FFFFFF'}
+                  color={colors.text || '#FFFFFF'}
                 />
               )}
-              <Text style={styles.folderText}>
+              <Text style={[styles.folderText, { color: colors.text }]}>
                 {kodikTranslations.length ? 'Озвучки' : 'Нет доступных озвучек'}
               </Text>
             </Pressable>
@@ -192,7 +190,7 @@ export default function AnimeDetailsScreen() {
             {kodikTranslations.length > 0 && ( // Условный рендеринг для скрытия кнопки
               <Pressable
                 style={({ pressed }) => [
-                  styles.purpleButton,
+                  styles.smallButton, { backgroundColor: colors.primary },
                   pressed && { opacity: 0.7 }, // Добавляем эффект нажатия
                 ]}
                 onPress={handlePlayWithoutSelection}
@@ -200,7 +198,7 @@ export default function AnimeDetailsScreen() {
                 <MaterialIcons
                   name="play-arrow"
                   size={20}
-                  color={Colors?.dark?.text || '#FFFFFF'}
+                  color={colors.text || '#FFFFFF'}
                 />
               </Pressable>
             )}
@@ -220,10 +218,10 @@ export default function AnimeDetailsScreen() {
               kodikTranslations.map((episode: any, index: number) => (
                 <Pressable
                   key={episode?.id || index} // Используем index как резервный ключ
-                  style={styles.episodeButton}
+                  style={[styles.episodeButton, { backgroundColor: colors.card }]}
                   onPress={() => handleWatchPress(episode?.link || '')} // Проверяем наличие ссылки
                 >
-                  <Text style={styles.episodeText}>
+                  <Text style={[styles.episodeText, { color: colors.text }]}>
                     {episode?.translation?.title || 'Без названия'}
                   </Text>
                 </Pressable>
@@ -233,8 +231,8 @@ export default function AnimeDetailsScreen() {
 
         {anime.description && (
           <View style={styles.descriptionContainer}>
-            <Text style={styles.descriptionTitle}>Описание:</Text>
-            <Text style={styles.descriptionText}>{cleanDescription(anime.description)}</Text>
+            <Text style={[styles.descriptionTitle, { color: colors.text }]}>Описание:</Text>
+            <Text style={[styles.descriptionText, { color: colors.subtext }]}>{cleanDescription(anime.description)}</Text>
           </View>
         )}
       </ScrollView>
@@ -245,14 +243,10 @@ export default function AnimeDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
-
   header: {
     position: 'relative',
     height: 300,
-    backgroundColor: Colors.dark.card,
-    borderBottomWidth: 0, // Убираем белую линию
   },
   poster: {
     width: '100%',
@@ -263,18 +257,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent overlay
   },
   loadingText: {
-    color: Colors.dark.text,
     fontSize: 16,
     marginTop: 8,
   },
@@ -282,11 +266,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
     padding: 16,
   },
   errorText: {
-    color: Colors.dark.text,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -298,37 +280,21 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
-    color: Colors.dark.text,
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 4,
+    color: theme.default.text,
   },
   originalTitle: {
-    color: Colors.dark.subtext,
     fontSize: 14,
+    color: theme.default.text,
   },
   actions: {
     flexDirection: 'column',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.dark.border,
   },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    backgroundColor: Colors.dark.card,
-    marginHorizontal: 4,
-  },
-  actionText: {
-    color: Colors.dark.text,
-    marginLeft: 8,
-    fontWeight: '600',
-  },
-  TranslationsContainer: {
+  translationsContainer: {
     padding: 16,
   },
   folderButtonContainer: {
@@ -341,57 +307,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 12,
-    backgroundColor: Colors.dark.card,
     borderRadius: 8,
     flex: 1,
     marginHorizontal: 8,
-    height: 48, // Высота кнопки "Смотреть"
+    height: 48,
   },
   folderText: {
-    color: Colors.dark.text,
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
   },
   smallButton: {
-    width: 48, // Ширина маленькой кнопки
-    height: 48, // Высота совпадает с кнопкой "Смотреть"
-    backgroundColor: Colors.dark.card,
+    width: 48,
+    height: 48,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: 8,
-  },
-  smallFavoriteButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: Colors.dark.card,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  purpleButton: {
-    width: 48, // Ширина кнопки
-    height: 48, // Высота совпадает с кнопкой "Смотреть"
-    backgroundColor: Colors.dark.primary, // Фиолетовый цвет
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8, // Отступы для симметрии
   },
   animatedContainer: {
     overflow: 'hidden',
   },
   episodeButton: {
     padding: 12,
-    backgroundColor: Colors.dark.card,
     borderRadius: 8,
     marginVertical: 4,
     alignItems: 'center',
     height: 50,
   },
   episodeText: {
-    color: Colors.dark.text,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -400,20 +344,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   descriptionTitle: {
-    color: Colors.dark.text,
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 8,
   },
   descriptionText: {
-    color: Colors.dark.subtext,
     fontSize: 14,
     lineHeight: 20,
-  },
-  disabledButton: {
-    backgroundColor: Colors.dark.disabled, // Цвет для неактивной кнопки "Озвучки"
-  },
-  disabledPurpleButton: {
-    backgroundColor: Colors.dark.disabled, // Цвет для неактивной кнопки "Смотреть без озвучки"
   },
 });

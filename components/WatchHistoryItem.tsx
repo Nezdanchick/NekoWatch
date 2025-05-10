@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { WatchHistoryItem as WatchHistoryItemType } from '@/types/anime';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
 
 export type WatchHistoryItemProps = {
@@ -14,6 +14,7 @@ export type WatchHistoryItemProps = {
 export default function WatchHistoryItem({ item, continueWatchingShow = false }: WatchHistoryItemProps) {
   const router = useRouter();
   const [link, setLink] = React.useState<string | null>(null);
+  const { colors } = useThemeStore();
 
   React.useEffect(() => {
     const fetchLink = async () => {
@@ -50,20 +51,20 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
   const imageUrl = item.image || 'https://via.placeholder.com/80x80/1E1E1E/FFFFFF?text=No+Image';
 
   return (
-    <Pressable style={styles.container} onPress={handlePress}>
+    <Pressable style={[styles.container, { backgroundColor: colors.card }]} onPress={handlePress}>
       <Image
         source={{ uri: imageUrl }}
         style={styles.image}
         resizeMode="cover"
       />
       <View style={styles.content}>
-        <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.date}>{formatDate(item.lastWatched)}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
+        <Text style={[styles.date, { color: colors.subtext }]}>{formatDate(item.lastWatched)}</Text>
       </View>
 
       {continueWatchingShow ? (
-        <Pressable style={styles.playButton} onPress={handleContinueWatching}>
-          <FontAwesome name="play" size={20} color={Colors.dark.text} />
+        <Pressable style={[styles.playButton, { backgroundColor: colors.primary }]} onPress={handleContinueWatching}>
+          <FontAwesome name="play" size={20} color={colors.text} />
         </Pressable>
       ) : null}
     </Pressable>
@@ -73,7 +74,6 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: Colors.dark.card,
     borderRadius: 12,
     marginHorizontal: 16,
     marginBottom: 12,
@@ -89,24 +89,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    color: Colors.dark.text,
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 4,
   },
-  episode: {
-    color: Colors.dark.primary,
-    fontSize: 12,
-    marginBottom: 4,
-  },
   date: {
-    color: Colors.dark.subtext,
     fontSize: 11,
   },
   playButton: {
     width: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.primary,
   },
 });

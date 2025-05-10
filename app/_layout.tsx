@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { StatusBar } from "react-native";
 import { ErrorBoundary } from "./error-boundary";
 import * as SystemUI from "expo-system-ui"
-import Colors from "@/constants/colors";
+import { useThemeStore } from '@/store/theme-store';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -16,11 +16,13 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { colors } = useThemeStore();
+
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
   });
 
-  SystemUI.setBackgroundColorAsync(Colors.dark.background);
+  SystemUI.setBackgroundColorAsync(colors.background);
 
   useEffect(() => {
     if (error) {
@@ -41,49 +43,54 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.dark.background} />
+      <StatusBar backgroundColor='#00000000' />
       <RootLayoutNav />
     </ErrorBoundary>
   );
 }
 
 function RootLayoutNav() {
+  const { colors } = useThemeStore();
+
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: Colors.dark.background,
+          backgroundColor: colors.background,
         },
-        headerTintColor: Colors.dark.text,
+        headerTintColor: colors.text,
         headerTitleStyle: {
           fontWeight: 'bold',
         },
         contentStyle: {
-          backgroundColor: Colors.dark.background,
+          backgroundColor: colors.background,
         },
+        statusBarStyle: colors.statusBar,
+        navigationBarHidden: true,
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="anime/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="anime/[id]"
+        options={{
           title: "Информация об аниме",
           animation: 'slide_from_right',
-        }} 
+        }}
       />
-      <Stack.Screen 
-        name="player/[id]" 
-        options={{ 
+      <Stack.Screen
+        name="player/[id]"
+        options={{
           headerShown: false,
           animation: 'fade',
           presentation: 'fullScreenModal',
-        }} 
+          statusBarHidden: true,
+        }}
       />
-      <Stack.Screen 
-        name="history/history" 
-        options={{ 
+      <Stack.Screen
+        name="history/history"
+        options={{
           animation: 'slide_from_right',
-        }} 
+        }}
       />
     </Stack>
   );

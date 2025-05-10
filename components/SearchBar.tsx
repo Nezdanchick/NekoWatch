@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { StyleSheet, TextInput, View, Pressable, TextInputProps } from 'react-native';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 interface SearchBarProps extends TextInputProps {
   value: string;
@@ -15,18 +15,19 @@ const SearchBar = forwardRef<TextInput, SearchBarProps>(
     const handleClear = () => {
       onChangeText('');
     };
+    const { colors } = useThemeStore();
 
     return (
       <View style={styles.container}>
-        <View style={styles.searchContainer}>
-          <FontAwesome name="search" size={20} color={Colors.dark.subtext} style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+          <FontAwesome name="search" size={20} color={colors.subtext} style={styles.searchIcon} />
           <TextInput
-            ref={ref} // Привязываем ref к TextInput
-            style={styles.input}
+            ref={ref}
+            style={[styles.input, { color: colors.text }]}
             value={value}
             onChangeText={onChangeText}
             placeholder={placeholder}
-            placeholderTextColor={Colors.dark.subtext}
+            placeholderTextColor={colors.subtext}
             returnKeyType="search"
             onSubmitEditing={onSubmit}
             autoCapitalize="none"
@@ -35,7 +36,7 @@ const SearchBar = forwardRef<TextInput, SearchBarProps>(
           />
           {value.length > 0 && (
             <Pressable onPress={handleClear} style={styles.clearButton}>
-              <FontAwesome name="times" size={18} color={Colors.dark.subtext} />
+              <FontAwesome name="times" size={18} color={colors.subtext} />
             </Pressable>
           )}
         </View>
@@ -52,7 +53,6 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.card,
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
@@ -62,7 +62,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: Colors.dark.text,
     fontSize: 16,
     height: '100%',
   },

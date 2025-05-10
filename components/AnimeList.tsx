@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AnimeCard from './AnimeCard';
 import { AnimeShort } from '@/types/anime';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeListProps {
   data: AnimeShort[];
@@ -25,10 +25,12 @@ export default function AnimeList({
   cardSize = 'medium',
   emptyMessage = 'Нет данных для отображения'
 }: AnimeListProps) {
+  const { colors } = useThemeStore();
+
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>Ошибка: {error}</Text>
+        <Text style={[styles.errorText, { color: colors.secondary }]}>Ошибка: {error}</Text>
       </View>
     );
   }
@@ -36,7 +38,7 @@ export default function AnimeList({
   if (loading && data.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={Colors.dark.primary} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -44,7 +46,7 @@ export default function AnimeList({
   if (data.length === 0 && !loading) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>{emptyMessage}</Text>
+        <Text style={[styles.emptyText, { color: colors.subtext }]}>{emptyMessage}</Text>
       </View>
     );
   }
@@ -52,7 +54,7 @@ export default function AnimeList({
   return (
     <View style={styles.container}>
       {title && (
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       )}
       <FlatList
         data={data}
@@ -69,7 +71,7 @@ export default function AnimeList({
         ListFooterComponent={
           loading && data.length > 0 ? (
             <View style={styles.footer}>
-              <ActivityIndicator color={Colors.dark.primary} />
+              <ActivityIndicator color={colors.primary} />
             </View>
           ) : null
         }
@@ -98,7 +100,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginHorizontal: 16,
     marginVertical: 12,
   },
@@ -108,12 +109,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
-    color: Colors.dark.secondary,
     textAlign: 'center',
     fontSize: 16,
   },
   emptyText: {
-    color: Colors.dark.subtext,
     textAlign: 'center',
     fontSize: 16,
   },

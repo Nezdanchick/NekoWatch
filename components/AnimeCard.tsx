@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { AnimeShort } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeCardProps {
   anime: AnimeShort;
@@ -12,6 +12,7 @@ interface AnimeCardProps {
 }
 
 export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
+  const { colors } = useThemeStore();
   const router = useRouter();
   const { isFavorite, addToFavorites, removeFromFavorites } = useAnimeStore();
   const favorite = isFavorite(anime.id);
@@ -65,7 +66,7 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
 
   return (
     <Pressable
-      style={[styles.container, sizeStyles.container]}
+      style={[styles.container, sizeStyles.container, { backgroundColor: colors.background }]}
       onPress={handlePress}
     >
       <View style={styles.imageContainer}>
@@ -74,28 +75,28 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
           style={[styles.image, sizeStyles.image]}
           resizeMode="cover"
         />
-        <View style={styles.metaContainer}>
-          <Text style={styles.meta}>
+        <View style={[styles.metaContainer, { backgroundColor: colors.background }]}>
+          <Text style={[styles.meta, { color: colors.subtext }]}>
             {anime.kind && anime.kind.toUpperCase()}
           </Text>
           {anime.score && (
-            <Text style={styles.score}>{anime.score}</Text>
+            <Text style={[styles.score, { color: colors.primary }]}>{anime.score}</Text>
           )}
         </View>
         <Pressable
-          style={styles.favoriteButton}
+          style={[styles.favoriteButton, { backgroundColor: colors.background }]}
           onPress={toggleFavorite}
           hitSlop={10}
         >
           <FontAwesome
             name="heart"
             size={20}
-            color={favorite ? Colors.dark.secondary : Colors.dark.subtext}
+            color={favorite ? colors.secondary : colors.subtext}
           />
         </Pressable>
       </View>
       <View style={styles.infoContainer}>
-        <Text style={[styles.title, sizeStyles.title]} numberOfLines={2} ellipsizeMode="tail">
+        <Text style={[styles.title, sizeStyles.title, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
           {anime.russian || anime.name || 'Без названия'}
         </Text>
       </View>
@@ -105,7 +106,6 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.dark.card,
     borderRadius: 12,
     overflow: 'hidden',
     margin: 8,
@@ -139,7 +139,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   title: {
-    color: Colors.dark.text,
     fontWeight: '600',
     marginBottom: 4,
     textAlign: 'center',
@@ -154,7 +153,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -164,12 +162,10 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   meta: {
-    color: Colors.dark.subtext,
     fontSize: 11,
     flexShrink: 1,
   },
   score: {
-    color: Colors.dark.primary,
     fontSize: 12,
     fontWeight: '700',
   },

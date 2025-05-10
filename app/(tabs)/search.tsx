@@ -6,7 +6,7 @@ import { searchAnime } from '@/services/shikimori-api';
 import { AnimeShort } from '@/types/anime';
 import SearchBar from '@/components/SearchBar';
 import AnimeCard from '@/components/AnimeCard';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,7 +18,7 @@ export default function SearchScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const searchBarRef = useRef<TextInput>(null); // Создаем реф для SearchBar
 
-  // Фокусируем SearchBar при каждом фокусе экрана
+  const { colors } = useThemeStore();
   useFocusEffect(
     React.useCallback(() => {
       const timeout = setTimeout(() => {
@@ -95,7 +95,7 @@ export default function SearchScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <SafeAreaView style={styles.container} edges={['right', 'left']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
         <SearchBar
           ref={searchBarRef} // Привязываем реф к SearchBar
           value={searchQuery}
@@ -105,11 +105,11 @@ export default function SearchScreen() {
 
         {error ? (
           <View style={styles.centerContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
           </View>
         ) : searchResults.length === 0 && !loading ? (
           <View style={styles.centerContainer}>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: colors.subtext }]}>
               {debouncedQuery ? 'Ничего не найдено' : '^///^'}
             </Text>
           </View>
@@ -125,7 +125,7 @@ export default function SearchScreen() {
             ListFooterComponent={
               loading ? (
                 <View style={styles.footer}>
-                  <ActivityIndicator size="large" color={Colors.dark.primary} />
+                  <ActivityIndicator size="large" color={colors.primary} />
                 </View>
               ) : null
             }
@@ -139,12 +139,6 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.dark.text,
   },
   listContent: {
     paddingHorizontal: 8,
@@ -161,12 +155,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    color: Colors.dark.subtext,
     fontSize: 16,
     textAlign: 'center',
   },
   errorText: {
-    color: Colors.dark.secondary,
     fontSize: 16,
     textAlign: 'center',
   },

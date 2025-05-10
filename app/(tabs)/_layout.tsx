@@ -2,30 +2,35 @@ import React from "react";
 import { Tabs } from "expo-router";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
-import Colors from "@/constants/colors";
+import { useThemeStore } from '@/store/theme-store';
 
 export default function TabLayout() {
+  const { colors } = useThemeStore();
+  
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors.dark.primary,
-        tabBarInactiveTintColor: Colors.dark.tabIconDefault,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tabIcon,
+        headerStyle: {
+          backgroundColor: colors.background,
+          borderBottomWidth: 0,
+          height: 80,
+          elevation: 0, // Убирает тень на Android
+          shadowOpacity: 0, // Убирает тень на iOS
+        },
         tabBarStyle: {
-          backgroundColor: Colors.dark.tabBar,
+          backgroundColor: colors.tabBar,
           borderTopColor: "transparent",
-          borderTopWidth: 0, // Убирает возможную линию
-          elevation: 0, // Для Android
-          shadowOpacity: 0, // Для iOS
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
           height: 60
         },
         tabBarLabelStyle: {
           fontSize: 12,
         },
-        headerStyle: {
-          backgroundColor: Colors.dark.background,
-          borderBottomWidth: 0, // Убирает линию под заголовком
-        },
-        headerTintColor: Colors.dark.text,
+        headerTintColor: colors.text,
         headerTitleStyle: {
           fontWeight: 'bold',
         },

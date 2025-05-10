@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 
 interface ConfirmationModalProps {
   visible: boolean;
@@ -17,6 +17,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onCancel,
   onConfirm,
 }) => {
+  const { colors } = useThemeStore();
+
   return (
     <Modal
       visible={visible}
@@ -25,15 +27,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       onRequestClose={onCancel}
     >
       <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>{title}</Text>
-          <Text style={styles.modalMessage}>{message}</Text>
+        <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
+          <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
+          <Text style={[styles.modalMessage, { color: colors.subtext }]}>{message}</Text>
           <View style={styles.modalButtons}>
-            <Pressable style={styles.modalButtonCancel} onPress={onCancel}>
-              <Text style={styles.modalButtonText}>Отмена</Text>
+            <Pressable style={[styles.modalButtonCancel, { backgroundColor: colors.subtext }]} onPress={onCancel}>
+              <Text style={[styles.modalButtonText, { color: colors.text }]}>Отмена</Text>
             </Pressable>
-            <Pressable style={styles.modalButtonConfirm} onPress={onConfirm}>
-              <Text style={styles.modalButtonText}>Очистить</Text>
+            <Pressable style={[styles.modalButtonConfirm, { backgroundColor: colors.primary }]} onPress={onConfirm}>
+              <Text style={[styles.modalButtonText, { color: colors.text }]}>Очистить</Text>
             </Pressable>
           </View>
         </View>
@@ -51,7 +53,6 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: '80%',
-    backgroundColor: Colors.dark.background, // Цвет фона модального окна
     borderRadius: 16, // Закругленные края
     padding: 20,
     alignItems: 'center',
@@ -59,12 +60,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: Colors.dark.text,
     marginBottom: 10,
   },
   modalMessage: {
     fontSize: 16,
-    color: Colors.dark.subtext,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -75,7 +74,6 @@ const styles = StyleSheet.create({
   },
   modalButtonCancel: {
     flex: 1,
-    backgroundColor: Colors.dark.subtext,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -83,14 +81,12 @@ const styles = StyleSheet.create({
   },
   modalButtonConfirm: {
     flex: 1,
-    backgroundColor: Colors.dark.primary,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
     marginLeft: 8,
   },
   modalButtonText: {
-    color: Colors.dark.text,
     fontSize: 16,
     fontWeight: 'bold',
   },

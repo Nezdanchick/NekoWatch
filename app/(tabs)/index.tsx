@@ -6,7 +6,7 @@ import { fetchAnimeList } from '@/services/shikimori-api';
 import { AnimeShort } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 import * as NavigationBar from 'expo-navigation-bar';
 
 const animeCount = 25;
@@ -20,6 +20,7 @@ export default function HomeScreen() {
     }
   }, []);
 
+  const { colors } = useThemeStore();
   const [popularAnime, setPopularAnime] = useState<AnimeShort[]>([]);
   const [latestAnime, setLatestAnime] = useState<AnimeShort[]>([]);
   const [ongoingAnime, setOngoingAnime] = useState<AnimeShort[]>([]);
@@ -124,7 +125,7 @@ export default function HomeScreen() {
   const opacity = animationValue;
 
   return (
-    <SafeAreaView style={styles.container} edges={['right', 'left']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
       <Animated.ScrollView
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
@@ -133,8 +134,8 @@ export default function HomeScreen() {
         }
       >
         {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
+            <Text style={[styles.container, { color: colors.secondary }]}>{error}</Text>
           </View>
         )}
 
@@ -205,7 +206,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.dark.background,
   },
   section: {
     marginVertical: 8,
@@ -218,7 +218,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   errorText: {
-    color: Colors.dark.secondary,
     textAlign: 'center',
   },
   footer: {

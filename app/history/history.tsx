@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { StyleSheet, FlatList, View, Text, Pressable } from 'react-native';
 import { useAnimeStore } from '@/store/anime-store';
 import WatchHistoryItem from '@/components/WatchHistoryItem';
-import Colors from '@/constants/colors';
+import { useThemeStore } from '@/store/theme-store';
 import { Stack } from 'expo-router';
 import ConfirmationModal from '@/components/ConfirmationModal'; // Импортируем компонент
 
 export default function HistoryScreen() {
+  const { colors } = useThemeStore();
   const { watchHistory, clearWatchHistory } = useAnimeStore();
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -39,12 +40,12 @@ export default function HistoryScreen() {
             contentContainerStyle={{ paddingTop: 16, paddingBottom: 80 }}
           />
           <Pressable style={styles.clearButton} onPress={handleClearHistory}>
-            <Text style={styles.clearButtonText}>Очистить историю</Text>
+            <Text style={[styles.clearButtonText, { color: colors.text }]}>Очистить историю</Text>
           </Pressable>
         </>
       ) : (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>История пуста</Text>
+        <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+          <Text style={[styles.emptyText, { color: colors.subtext }]}>История пуста</Text>
         </View>
       )}
 
@@ -64,11 +65,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Colors.dark.background,
   },
   emptyText: {
     fontSize: 18,
-    color: Colors.dark.subtext,
   },
   clearButton: {
     position: 'absolute',
@@ -81,7 +80,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   clearButtonText: {
-    color: Colors.dark.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
