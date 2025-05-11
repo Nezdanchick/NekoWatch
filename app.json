@@ -29,7 +29,16 @@
       "barStyle": "light-content"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-navigation-bar",
+        {
+          "position": "absolute",
+          "visibility": "hidden",
+          "behavior": "overlay-swipe",
+          "backgroundColor": "#00000080"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

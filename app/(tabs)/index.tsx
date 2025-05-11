@@ -7,19 +7,10 @@ import { AnimeShort } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
-import * as NavigationBar from 'expo-navigation-bar';
 
 const animeCount = 25;
 
 export default function HomeScreen() {
-  useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setPositionAsync("absolute");
-      NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBehaviorAsync("overlay-swipe");
-    }
-  }, []);
-
   const { colors } = useThemeStore();
   const [popularAnime, setPopularAnime] = useState<AnimeShort[]>([]);
   const [latestAnime, setLatestAnime] = useState<AnimeShort[]>([]);
