@@ -44,31 +44,16 @@ export default function PlayerScreen() {
           src={kodikUrl}
           style={styles.iframe}
           allowFullScreen
-          sandbox="allow-scripts allow-same-origin"
         />
       ) : (
-        <WebView
-          source={{
-            html: `
-      <html>
-        <body style="margin:0;padding:0;">
-          <iframe
-            id="kodik-iframe"
-            src="${kodikUrl}"
-            width="100%"
-            height="100%"
-            frameborder="0"
-            allowfullscreen
-          ></iframe>
-        </body>
-      </html>
-    `,
-          }}
-          style={styles.webview}
-          onMessage={(event) => {
-            console.log('Kodik iframe:', event.nativeEvent.data);
-          }}
-        />
+      <WebView
+        source={{ uri: kodikUrl }}
+        style={styles.webview}
+        // deny double-click, zoom, scroll
+        injectedJavaScript={`
+    window.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+  `}
+      />
       )}
     </View>
   );
@@ -78,15 +63,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  backButton: {
-    position: 'absolute',
-    top: 48,
-    left: 16,
-    padding: 8,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 8,
-    zIndex: 1000,
   },
   backButtonText: {
     color: '#fff',
