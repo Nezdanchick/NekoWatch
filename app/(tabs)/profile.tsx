@@ -7,6 +7,7 @@ import { useThemeStore } from '@/store/theme-store';
 import * as Linking from 'expo-linking';
 import GithubIcon from '@/components/GithubIcon';
 import { useRouter } from 'expo-router';
+import { TimeSpentSection } from '@/components/TimeSpentSection';
 import ThemeSelector from '@/components/ThemeSelector';
 
 export default function ProfileScreen() {
@@ -62,6 +63,8 @@ export default function ProfileScreen() {
       <ScrollView>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Ваша активность</Text>
+
+          <TimeSpentSection/>
 
           {renderMenuItem(
             <MaterialCommunityIcons name="history" size={24} color={colors.primary} />,
