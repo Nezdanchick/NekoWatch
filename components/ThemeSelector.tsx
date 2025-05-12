@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { useThemeStore } from '@/store/theme-store';
-import { ThemeName, themeMap } from '@/constants/theme';
+import { themeMap } from '@/constants/theme';
 
 interface ThemeSelectorProps { }
 
@@ -34,7 +34,7 @@ const ThemeSelecor: React.FC<ThemeSelectorProps> = ({
         style={[
           styles.slider,
           {
-            backgroundColor: colors.primary,
+            backgroundColor: colors.disabled,
             transform: [{ translateX: sliderPosition }],
           },
         ]}
@@ -73,14 +73,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     position: 'relative',
-    borderRadius: 8,
-    marginHorizontal: 16,
-    height: 50,
+    height: 60,
     overflow: 'hidden',
   },
   slider: {
     position: 'absolute',
-    width: '33.33%', // Ширина слайдера равна 1/3 ширины контейнера
+    width: '33.33%',
     height: '100%',
     borderRadius: 8,
   },

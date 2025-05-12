@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs } from "expo-router";
-import MaterialIcons from "react-native-vector-icons/MaterialIcons";
-import FontAwesome from "react-native-vector-icons/FontAwesome";
+import { FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
 
 export default function TabLayout() {
@@ -15,9 +15,9 @@ export default function TabLayout() {
         headerStyle: {
           backgroundColor: colors.background,
           borderBottomWidth: 0,
-          height: 80,
-          elevation: 0, // Убирает тень на Android
-          shadowOpacity: 0, // Убирает тень на iOS
+          height: 30,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarStyle: {
           backgroundColor: colors.tabBar,
@@ -34,6 +34,7 @@ export default function TabLayout() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
+        headerShown: false
       }}
     >
       <Tabs.Screen
@@ -41,7 +42,7 @@ export default function TabLayout() {
         options={{
           title: "Главная",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="home" size={22} color={color} />
+            <MaterialCommunityIcons name="home" size={22} color={color} />
           ),
         }}
       />
@@ -50,7 +51,7 @@ export default function TabLayout() {
         options={{
           title: "Поиск",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="search" size={22} color={color} />
+            <MaterialCommunityIcons name="magnify" size={22} color={color} />
           ),
         }}
       />
@@ -68,7 +69,7 @@ export default function TabLayout() {
         options={{
           title: "Профиль",
           tabBarIcon: ({ color }) => (
-            <MaterialIcons name="person" size={22} color={color} />
+            <MaterialCommunityIcons name="face-man" size={22} color={color} />
           ),
         }}
       />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native'; // Импортируем useFocusEffect
+import { useFocusEffect } from '@react-navigation/native';
 import { searchAnime } from '@/services/shikimori-api';
 import { AnimeShort } from '@/types/anime';
 import SearchBar from '@/components/SearchBar';
@@ -16,20 +16,19 @@ export default function SearchScreen() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const searchBarRef = useRef<TextInput>(null); // Создаем реф для SearchBar
+  const searchBarRef = useRef<TextInput>(null);
 
   const { colors } = useThemeStore();
   useFocusEffect(
     React.useCallback(() => {
       const timeout = setTimeout(() => {
         searchBarRef.current?.focus();
-      }, 100); // Задержка для корректной работы на Android
+      }, 100);
 
-      return () => clearTimeout(timeout); // Очищаем таймер при размонтировании
+      return () => clearTimeout(timeout);
     }, [])
   );
 
-  // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
@@ -40,7 +39,6 @@ export default function SearchScreen() {
     };
   }, [searchQuery]);
 
-  // Perform search when debounced query changes
   useEffect(() => {
     if (debouncedQuery) {
       handleSearch(1);
@@ -97,7 +95,7 @@ export default function SearchScreen() {
     >
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
         <SearchBar
-          ref={searchBarRef} // Привязываем реф к SearchBar
+          ref={searchBarRef}
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Введите название аниме"

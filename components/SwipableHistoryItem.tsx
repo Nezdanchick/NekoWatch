@@ -13,7 +13,6 @@ const SwipeableHistoryItem: React.FC<WatchHistoryItemProps> = ({ item }) => {
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gestureState) => {
-        // Обновляем значение translateX вручную
         translateX.setValue(gestureState.dx);
       },
       onPanResponderRelease: (_, gestureState) => {
@@ -22,7 +21,6 @@ const SwipeableHistoryItem: React.FC<WatchHistoryItemProps> = ({ item }) => {
         } else if (gestureState.dx > 50) {
           triggerHideAnimation('right');
         } else {
-          // Возвращаем элемент в исходное положение
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: true,

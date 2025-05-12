@@ -1,29 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
 import * as Linking from 'expo-linking';
 import GithubIcon from '@/components/GithubIcon';
 import { useRouter } from 'expo-router';
-import ConfirmationModal from '@/components/ConfirmationModal';
 import ThemeSelector from '@/components/ThemeSelector';
 
 export default function ProfileScreen() {
   const { colors } = useThemeStore();
-  const { clearWatchHistory, watchHistory } = useAnimeStore();
+  const { watchHistory } = useAnimeStore();
   const router = useRouter();
-  const [isModalVisible, setModalVisible] = useState(false);
-
-  const handleClearHistory = () => {
-    setModalVisible(true);
-  };
-
-  const confirmClearHistory = () => {
-    clearWatchHistory();
-    setModalVisible(false);
-  };
 
   const handleNezdanchickPress = () => {
     Linking.openURL('https://github.com/Nezdanchick').catch(err =>
@@ -33,6 +22,12 @@ export default function ProfileScreen() {
 
   const handleWineusPress = () => {
     Linking.openURL('https://github.com/W1neus').catch(err =>
+      console.error('Не удалось открыть ссылку:', err)
+    );
+  };
+
+  const handleProjectPress = () => {
+    Linking.openURL('https://github.com/Nezdanchick/NekoWatch').catch(err =>
       console.error('Не удалось открыть ссылку:', err)
     );
   };
@@ -66,32 +61,25 @@ export default function ProfileScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
       <ScrollView>
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Настройки</Text>
-
-          <ThemeSelector></ThemeSelector>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ваша активность</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Ваша активность</Text>
 
           {renderMenuItem(
-            <MaterialIcons name="history" size={24} color={colors.primary} />,
+            <MaterialCommunityIcons name="history" size={24} color={colors.primary} />,
             "История просмотров",
             "Просмотренные аниме и эпизоды",
-            handleHistoryPress, // Добавлен обработчик нажатия
+            handleHistoryPress,
             watchHistory.length
-          )}
-
-          {renderMenuItem(
-            <MaterialIcons name="delete" size={24} color={colors.secondary} />,
-            "Очистить историю",
-            "Удалить всю историю просмотров",
-            handleClearHistory
           )}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>О нас</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Тема</Text>
+
+          <ThemeSelector />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>О нас</Text>
 
           {renderMenuItem(
             <GithubIcon size={24} color={colors.primary} />,
@@ -105,17 +93,14 @@ export default function ProfileScreen() {
             "Менеджер",
             handleWineusPress
           )}
+          {renderMenuItem(
+            <GithubIcon size={24} color={colors.primary} />,
+            "Страница проекта",
+            "Перейти на github.com",
+            handleProjectPress
+          )}
         </View>
       </ScrollView>
-
-      {/* Модальное окно подтверждения */}
-      <ConfirmationModal
-        visible={isModalVisible}
-        title="Очистить историю"
-        message="Вы уверены, что хотите очистить всю историю просмотров?"
-        onCancel={() => setModalVisible(false)}
-        onConfirm={confirmClearHistory}
-      />
     </SafeAreaView>
   );
 }
@@ -123,6 +108,11 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingVertical: 20,
   },
   section: {
     marginVertical: 16,
@@ -138,7 +128,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
-    marginBottom: 1,
+    height: 60,
+    marginBottom: 4,
   },
   menuIcon: {
     width: 40,
@@ -154,7 +145,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   menuSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
   },
   badge: {
     borderRadius: 12,

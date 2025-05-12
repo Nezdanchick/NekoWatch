@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, Animated } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, Animated, StatusBar } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { FontAwesome } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
 import { AnimeDetailed } from '@/types/anime';
@@ -83,20 +83,29 @@ export default function AnimeDetailsScreen() {
     }
   };
 
+  let translationAnimation: Animated.CompositeAnimation;
+
   const toggleTranslationsVisibility = () => {
     if (isTranslationsVisible) {
-      Animated.timing(animationHeight, {
+      translationAnimation?.reset();
+      setTranslationsVisible(true);
+      translationAnimation = Animated.timing(animationHeight, {
         toValue: 0,
         duration: 300,
         useNativeDriver: false,
-      }).start(() => setTranslationsVisible(false));
+      });
+      translationAnimation.start(() => {
+        setTranslationsVisible(false);
+      });
     } else {
+      translationAnimation?.reset();
       setTranslationsVisible(true);
-      Animated.timing(animationHeight, {
+      translationAnimation = Animated.timing(animationHeight, {
         toValue: kodikTranslations.length * (styles.episodeButton.height + styles.episodeButton.padding),
         duration: 300,
         useNativeDriver: false,
-      }).start();
+      });
+      translationAnimation.start();
     }
   };
 
@@ -146,10 +155,11 @@ export default function AnimeDetailsScreen() {
             style={styles.poster}
             resizeMode="cover"
           />
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
-            <Text style={styles.originalTitle}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
-          </View>
+        </View>
+
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
+          <Text style={styles.originalTitle}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
         </View>
 
         <View style={[styles.actions, { borderBottomColor: colors.border }]}>
@@ -175,8 +185,8 @@ export default function AnimeDetailsScreen() {
               disabled={!kodikTranslations.length} // Делаем кнопку неактивной, если нет озвучек
             >
               {!kodikTranslations.length ? null : ( // Убираем стрелку, если нет озвучек
-                <MaterialIcons
-                  name={isTranslationsVisible ? 'expand-less' : 'expand-more'}
+                <MaterialCommunityIcons
+                  name={isTranslationsVisible ? 'chevron-up' : 'chevron-down'}
                   size={20}
                   color={colors.text || '#FFFFFF'}
                 />
@@ -195,8 +205,8 @@ export default function AnimeDetailsScreen() {
                 ]}
                 onPress={handlePlayWithoutSelection}
               >
-                <MaterialIcons
-                  name="play-arrow"
+                <MaterialCommunityIcons
+                  name="play"
                   size={20}
                   color={colors.text || '#FFFFFF'}
                 />
@@ -273,21 +283,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   titleContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    flexDirection: 'column',
     padding: 16,
+    borderBottomWidth: 1,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 4,
     color: theme.default.text,
   },
   originalTitle: {
     fontSize: 14,
-    color: theme.default.text,
+    color: theme.default.primary,
   },
   actions: {
     flexDirection: 'column',

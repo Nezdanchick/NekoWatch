@@ -3,14 +3,12 @@ import { StyleSheet, View, Text, Platform } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { useLocalSearchParams } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { StatusBar } from 'expo-status-bar';
 
 export default function PlayerScreen() {
   const { kodikUrl } = useLocalSearchParams<{ kodikUrl: string }>();
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
-      // Устанавливаем ориентацию экрана в landscape при монтировании
       const lockOrientation = async () => {
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
       };
@@ -18,7 +16,6 @@ export default function PlayerScreen() {
       lockOrientation();
 
       return () => {
-        // Возвращаем ориентацию в портретный режим при размонтировании
         const unlockOrientation = async () => {
           await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
         };
@@ -38,7 +35,6 @@ export default function PlayerScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar hidden={true} />
       {Platform.OS === 'web' ? (
         <iframe
           src={kodikUrl}

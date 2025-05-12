@@ -1,6 +1,6 @@
 import React, { forwardRef } from 'react';
 import { StyleSheet, TextInput, View, Pressable, TextInputProps } from 'react-native';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
 
 interface SearchBarProps extends TextInputProps {
@@ -32,7 +32,7 @@ const SearchBar = forwardRef<TextInput, SearchBarProps>(
             onSubmitEditing={onSubmit}
             autoCapitalize="none"
             autoCorrect={false}
-            {...props} // Передаем остальные свойства TextInput
+            {...props}
           />
           {value.length > 0 && (
             <Pressable onPress={handleClear} style={styles.clearButton}>

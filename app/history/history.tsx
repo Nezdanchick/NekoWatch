@@ -4,7 +4,7 @@ import { useAnimeStore } from '@/store/anime-store';
 import WatchHistoryItem from '@/components/WatchHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 import { Stack } from 'expo-router';
-import ConfirmationModal from '@/components/ConfirmationModal'; // Импортируем компонент
+import ConfirmationModal from '@/components/ConfirmationModal';
 
 export default function HistoryScreen() {
   const { colors } = useThemeStore();

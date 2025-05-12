@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { WatchHistoryItem as WatchHistoryItemType } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
@@ -47,13 +47,10 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
     });
   };
 
-  // Handle missing image
-  const imageUrl = item.image || 'https://via.placeholder.com/80x80/1E1E1E/FFFFFF?text=No+Image';
-
   return (
     <Pressable style={[styles.container, { backgroundColor: colors.card }]} onPress={handlePress}>
       <Image
-        source={{ uri: imageUrl }}
+        source={{ uri: item.image }}
         style={styles.image}
         resizeMode="cover"
       />

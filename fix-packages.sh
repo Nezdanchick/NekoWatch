@@ -15,14 +15,14 @@ fi
 
 npx expo install --fix
 
-# Reinstall dependencies
-echo "Reinstalling dependencies..."
-npm install
-
 # If using Bun as package manager
 if command -v bun &> /dev/null; then
     echo "Installing dependencies with Bun..."
     bun install
 fi
+
+# Reinstall dependencies
+echo "Reinstalling dependencies..."
+npm install
 
 echo "Cleanup and reinstall complete!"

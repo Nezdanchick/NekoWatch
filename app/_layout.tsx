@@ -12,7 +12,6 @@ export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -64,8 +63,11 @@ function RootLayoutNav() {
         },
         contentStyle: {
           backgroundColor: colors.background,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         statusBarStyle: colors.statusBar,
+        statusBarHidden: false,
         navigationBarHidden: true,
       }}
     >
@@ -81,9 +83,9 @@ function RootLayoutNav() {
         name="player/[id]"
         options={{
           headerShown: false,
+          statusBarHidden: true,
           animation: 'fade',
           presentation: 'fullScreenModal',
-          statusBarHidden: true,
         }}
       />
       <Stack.Screen

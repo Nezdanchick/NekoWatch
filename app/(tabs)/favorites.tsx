@@ -25,7 +25,6 @@ export default function FavoritesScreen() {
     setError(null);
 
     try {
-      // Загружаем данные последовательно, чтобы избежать rate limiting
       const animeResults: AnimeShort[] = [];
 
       for (const id of favorites) {
@@ -36,7 +35,6 @@ export default function FavoritesScreen() {
           }
         } catch (err) {
           console.error(`Ошибка при загрузке аниме с ID ${id}:`, err);
-          // Продолжаем загрузку других аниме
         }
       }
 

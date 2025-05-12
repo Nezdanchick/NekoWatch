@@ -31,10 +31,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.modalMessage, { color: colors.subtext }]}>{message}</Text>
           <View style={styles.modalButtons}>
-            <Pressable style={[styles.modalButtonCancel, { backgroundColor: colors.subtext }]} onPress={onCancel}>
+            <Pressable style={[styles.modalButtonCancel, { backgroundColor: colors.primary }]} onPress={onCancel}>
               <Text style={[styles.modalButtonText, { color: colors.text }]}>Отмена</Text>
             </Pressable>
-            <Pressable style={[styles.modalButtonConfirm, { backgroundColor: colors.primary }]} onPress={onConfirm}>
+            <Pressable style={[styles.modalButtonConfirm, { backgroundColor: colors.secondary }]} onPress={onConfirm}>
               <Text style={[styles.modalButtonText, { color: colors.text }]}>Очистить</Text>
             </Pressable>
           </View>
@@ -49,11 +49,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Полупрозрачный фон
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
     width: '80%',
-    borderRadius: 16, // Закругленные края
+    borderRadius: 16,
     padding: 20,
     alignItems: 'center',
   },

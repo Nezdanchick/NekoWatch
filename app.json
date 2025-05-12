@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./title.png",
+      "image": "./assets/images/title.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
@@ -22,11 +22,6 @@
       "adaptiveIcon": {
         "backgroundColor": "#ffffff"
       }
-    },
-    "androidNavigationBar": {
-      "visible": "immersive",
-      "backgroundColor": "#000000",
-      "barStyle": "light-content"
     },
     "plugins": [
       "expo-router",

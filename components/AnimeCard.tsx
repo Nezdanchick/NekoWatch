@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { AnimeShort } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
@@ -55,15 +55,6 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
 
   const sizeStyles = getCardSize();
 
-  let imageUrl = 'https://via.placeholder.com/150x200/1E1E1E/FFFFFF?text=No+Image';
-  try {
-    if (anime.image && anime.image.preview) {
-      imageUrl = `https://shikimori.one${anime.image.preview}`;
-    }
-  } catch (error) {
-    console.warn('Error with anime image:', error);
-  }
-
   return (
     <Pressable
       style={[styles.container, sizeStyles.container, { backgroundColor: colors.background }]}
@@ -71,7 +62,7 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: `https://shikimori.one${anime.image.original}` }}
           style={[styles.image, sizeStyles.image]}
           resizeMode="cover"
         />
@@ -79,6 +70,11 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
           <Text style={[styles.meta, { color: colors.subtext }]}>
             {anime.kind && anime.kind.toUpperCase()}
           </Text>
+          {anime.aired_on && (
+            <Text style={[styles.aired_on, { color: colors.disabled }]}>
+              {anime.aired_on.substring(0, anime.aired_on.lastIndexOf('-'))}
+            </Text>
+          )}
           {anime.score && (
             <Text style={[styles.score, { color: colors.primary }]}>{anime.score}</Text>
           )}
@@ -163,6 +159,10 @@ const styles = StyleSheet.create({
   },
   meta: {
     fontSize: 11,
+    flexShrink: 1,
+  },
+  aired_on: {
+    fontSize: 10,
     flexShrink: 1,
   },
   score: {

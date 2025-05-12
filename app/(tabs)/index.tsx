@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, RefreshControl, Animated, Platform } from 'react-native';
+import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
@@ -8,7 +8,7 @@ import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 
-const animeCount = 25;
+const animeCount = 15;
 
 export default function HomeScreen() {
   const { colors } = useThemeStore();
@@ -29,7 +29,7 @@ export default function HomeScreen() {
     .sort((a, b) => b.lastWatched - a.lastWatched)
     .slice(0, 5);
 
-  const animationValue = useRef(new Animated.Value(1)).current; // 1 - видимо, 0 - скрыто
+  const animationValue = useRef(new Animated.Value(1)).current;
 
   const loadData = useCallback(async () => {
     try {

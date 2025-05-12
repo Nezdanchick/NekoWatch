@@ -1,5 +1,5 @@
 import React from 'react';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import { FontAwesome } from '@expo/vector-icons';
 import { TextStyle, StyleProp } from 'react-native';
 
 interface GithubIconProps {

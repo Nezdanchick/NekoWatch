@@ -2,7 +2,7 @@ import { AnimeDetailed, AnimeShort } from "@/types/anime";
 import { Platform } from "react-native";
 
 const BASE_URL = "https://shikimori.one/api";
-const USER_AGENT = "AnimeViewerApp/1.0 (https://github.com/your-username/anime-viewer-app)";
+const USER_AGENT = "NekoWatch/1.0 (https://github.com/nezdanchick/NekoWatch)";
 
 // Добавляем задержку между запросами для избежания rate limiting
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -15,7 +15,6 @@ const getHeaders = () => {
     "Accept": "application/json",
   };
   
-  // Добавляем заголовок для веб-версии, чтобы избежать CORS-ошибок
   if (Platform.OS === 'web') {
     headers["Origin"] = "https://shikimori.one";
   }
@@ -107,7 +106,6 @@ export async function fetchAnimeDetails(id: number): Promise<AnimeDetailed | nul
     const url = `${BASE_URL}/animes/${id}`;
     console.log(`Fetching anime details: ${url}`);
     
-    // Добавляем небольшую задержку перед запросом деталей
     await delay(300);
     
     const response = await fetchWithRetry(url, { 
@@ -148,7 +146,6 @@ export async function searchAnime(query: string, page = 1, limit = 20): Promise<
     
     const data = await response.json();
     
-    // Проверяем, что получили массив
     if (!Array.isArray(data)) {
       console.warn("Unexpected data format from API:", data);
       return [];

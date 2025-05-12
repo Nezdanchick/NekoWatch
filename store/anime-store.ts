@@ -7,7 +7,6 @@ interface AnimeState {
   favorites: number[];
   watchHistory: WatchHistoryItem[];
   
-  // Actions
   addToFavorites: (animeId: number) => void;
   removeFromFavorites: (animeId: number) => void;
   isFavorite: (animeId: number) => boolean;
@@ -45,7 +44,6 @@ export const useAnimeStore = create<AnimeState>()(
             image,
             lastWatched: Date.now()
           };
-          // Remove existing entry if present
           const filteredHistory = state.watchHistory.filter(
             h => !(h.animeId === item.animeId)
           );
