@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, Animated, StatusBar } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, Animated, StatusBar, FlatList, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,15 +18,19 @@ export default function AnimeDetailsScreen() {
 
   const [anime, setAnime] = useState<AnimeDetailed | null>(null);
   const [kodikTranslations, setKodikTranslations] = useState<any[]>([]);
+  const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTranslationsVisible, setTranslationsVisible] = useState(false);
   const [animeDescription, setAnimeDescription] = useState<string | null>(null);
   const animationHeight = useRef(new Animated.Value(0)).current;
+  const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
 
   const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
   const favorite = isFavorite(animeId);
   
+  const screenWidth = Dimensions.get('window').width;
+
   useEffect(() => {
     const loadAnimeDetails = async () => {
       if (!animeId || isNaN(animeId)) {
@@ -44,16 +48,19 @@ export default function AnimeDetailsScreen() {
           throw new Error('Не удалось загрузить информацию об аниме');
         }
 
-  
         const kodikResults = await searchKodikByShikimoriId(animeDetails.id, true);
         let kodikDescription = "";
+        let screenshots: string[] = [];
+
         if (kodikResults.length > 0 && kodikResults[0].material_data) {
-        kodikDescription = kodikResults[0].material_data.description;
+          kodikDescription = kodikResults[0].material_data.description;
+          screenshots = kodikResults[0].material_data.screenshots || [];
         }
-        
+
         setAnime({ ...animeDetails, description: kodikDescription });
         setAnimeDescription(kodikDescription);
         setKodikTranslations(kodikResults);
+        setKodikScreenshots(screenshots);
       } catch (err) {
         console.error('Ошибка при загрузке информации об аниме:', err);
         setError('Ошибка при загрузке информации об аниме');
@@ -91,6 +98,11 @@ export default function AnimeDetailsScreen() {
     }
   };
 
+  const handleScroll = (event: any) => {
+    const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+    setCurrentScreenshotIndex(index);
+  };
+
   let translationAnimation: Animated.CompositeAnimation;
 
   const toggleTranslationsVisibility = () => {
@@ -109,7 +121,7 @@ export default function AnimeDetailsScreen() {
       translationAnimation?.reset();
       setTranslationsVisible(true);
       translationAnimation = Animated.timing(animationHeight, {
-        toValue: kodikTranslations.length * (styles.episodeButton.height + styles.episodeButton.padding),
+        toValue: kodikTranslations.length * (styles.episodeButton.height + 8),
         duration: 300,
         useNativeDriver: false,
       });
@@ -158,11 +170,47 @@ export default function AnimeDetailsScreen() {
     <>
       <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.poster}
-            resizeMode="cover"
-          />
+          {kodikScreenshots.length > 0 ? (
+            <>
+              <FlatList
+                data={kodikScreenshots}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                onScroll={(event) => {
+                  const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+                  setCurrentScreenshotIndex(index);
+                }}
+                renderItem={({ item }) => (
+                  <Image
+                    source={{ uri: item }}
+                    style={[styles.screenshot, { width: screenWidth }]}
+                    resizeMode="cover"
+                  />
+                )}
+              />
+              <View style={styles.overlayIndicatorContainer}>
+                {kodikScreenshots.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.indicator,
+                      currentScreenshotIndex === index
+                        ? styles.activeIndicator
+                        : styles.inactiveIndicator,
+                    ]}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.poster}
+              resizeMode="cover"
+            />
+          )}
         </View>
 
         <View style={styles.titleContainer}>
@@ -170,7 +218,7 @@ export default function AnimeDetailsScreen() {
           <Text style={styles.originalTitle}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
         </View>
 
-        <View style={[styles.actions, { borderBottomColor: colors.border }]}>
+        <View style={styles.actions}>
           <View style={styles.folderButtonContainer}>
             {/* Кнопка "Избранное" */}
             <Pressable style={[styles.smallButton, { backgroundColor: colors.card }]} onPress={toggleFavorite}>
@@ -185,14 +233,14 @@ export default function AnimeDetailsScreen() {
             <Pressable
               style={[
                 styles.folderButton,
-                kodikTranslations.length !== 0 ?
-                  { backgroundColor: colors.card } :  // Активная кнопка
-                  { backgroundColor: colors.disabled },   // Неактивная кнопка
+                kodikTranslations.length !== 0
+                  ? { backgroundColor: colors.card }
+                  : { backgroundColor: colors.disabled },
               ]}
               onPress={toggleTranslationsVisibility}
-              disabled={!kodikTranslations.length} // Делаем кнопку неактивной, если нет озвучек
+              disabled={!kodikTranslations.length}
             >
-              {!kodikTranslations.length ? null : ( // Убираем стрелку, если нет озвучек
+              {!kodikTranslations.length ? null : (
                 <MaterialCommunityIcons
                   name={isTranslationsVisible ? 'chevron-up' : 'chevron-down'}
                   size={20}
@@ -205,11 +253,12 @@ export default function AnimeDetailsScreen() {
             </Pressable>
 
             {/* Кнопка "Смотреть без озвучки" */}
-            {kodikTranslations.length > 0 && ( // Условный рендеринг для скрытия кнопки
+            {kodikTranslations.length > 0 && (
               <Pressable
                 style={({ pressed }) => [
-                  styles.smallButton, { backgroundColor: colors.primary },
-                  pressed && { opacity: 0.7 }, // Добавляем эффект нажатия
+                  styles.smallButton,
+                  { backgroundColor: colors.primary },
+                  pressed && { opacity: 0.7 },
                 ]}
                 onPress={handlePlayWithoutSelection}
               >
@@ -226,8 +275,8 @@ export default function AnimeDetailsScreen() {
               styles.animatedContainer,
               {
                 height: animationHeight,
-                marginTop: 16, // Отступ сверху
-                paddingHorizontal: 8, // Горизонтальные отступы для выравнивания с кнопками
+                marginTop: 16,
+                paddingHorizontal: 8,
               },
             ]}
           >
@@ -235,9 +284,9 @@ export default function AnimeDetailsScreen() {
               kodikTranslations?.length > 0 &&
               kodikTranslations.map((episode: any, index: number) => (
                 <Pressable
-                  key={episode?.id || index} // Используем index как резервный ключ
+                  key={episode?.id || index}
                   style={[styles.episodeButton, { backgroundColor: colors.card }]}
-                  onPress={() => handleWatchPress(episode?.link || '')} // Проверяем наличие ссылки
+                  onPress={() => handleWatchPress(episode?.link || '')}
                 >
                   <Text style={[styles.episodeText, { color: colors.text }]}>
                     {episode?.translation?.title || 'Без названия'}
@@ -271,6 +320,20 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 8,
   },
+  screenshot: {
+    height: 300,
+  },
+  screenshotContainer: {
+    position: 'relative',
+  },
+  overlayIndicatorContainer: {
+    position: 'absolute',
+    bottom: 16, // Расположение индикаторов внизу скриншота
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    zIndex: 1, // Убедитесь, что индикаторы отображаются поверх изображений
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -293,7 +356,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'column',
     padding: 16,
-    borderBottomWidth: 1,
   },
   title: {
     fontSize: 28,
@@ -308,7 +370,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'column',
     padding: 16,
-    borderBottomWidth: 1,
   },
   translationsContainer: {
     padding: 16,
@@ -356,8 +417,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   descriptionContainer: {
-    marginTop: 16,
     paddingHorizontal: 16,
+    marginBottom: 35, // Добавлен отступ снизу
   },
   descriptionTitle: {
     fontSize: 18,
@@ -367,5 +428,22 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 14,
     lineHeight: 20,
+  },
+  indicatorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 8,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+  },
+  activeIndicator: {
+    backgroundColor: theme.default.primary,
+  },
+  inactiveIndicator: {
+    backgroundColor: theme.default.subtext,
   },
 });
