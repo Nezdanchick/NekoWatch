@@ -21,11 +21,12 @@ export default function AnimeDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isTranslationsVisible, setTranslationsVisible] = useState(false);
+  const [animeDescription, setAnimeDescription] = useState<string | null>(null);
   const animationHeight = useRef(new Animated.Value(0)).current;
 
   const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
   const favorite = isFavorite(animeId);
-
+  
   useEffect(() => {
     const loadAnimeDetails = async () => {
       if (!animeId || isNaN(animeId)) {
@@ -42,9 +43,16 @@ export default function AnimeDetailsScreen() {
         if (!animeDetails) {
           throw new Error('Не удалось загрузить информацию об аниме');
         }
-        setAnime(animeDetails);
 
-        const kodikResults = await searchKodikByShikimoriId(animeDetails.id);
+  
+        const kodikResults = await searchKodikByShikimoriId(animeDetails.id, true);
+        let kodikDescription = "";
+        if (kodikResults.length > 0 && kodikResults[0].material_data) {
+        kodikDescription = kodikResults[0].material_data.description;
+        }
+        
+        setAnime({ ...animeDetails, description: kodikDescription });
+        setAnimeDescription(kodikDescription);
         setKodikTranslations(kodikResults);
       } catch (err) {
         console.error('Ошибка при загрузке информации об аниме:', err);
@@ -239,10 +247,10 @@ export default function AnimeDetailsScreen() {
           </Animated.View>
         </View>
 
-        {anime.description && (
+        {animeDescription && (
           <View style={styles.descriptionContainer}>
             <Text style={[styles.descriptionTitle, { color: colors.text }]}>Описание:</Text>
-            <Text style={[styles.descriptionText, { color: colors.subtext }]}>{cleanDescription(anime.description)}</Text>
+            <Text style={[styles.descriptionText, { color: colors.subtext }]}>{animeDescription}</Text>
           </View>
         )}
       </ScrollView>
