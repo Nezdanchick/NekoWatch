@@ -1,42 +1,37 @@
-import { AnimeDetailed, AnimeShort } from "@/types/anime";
+import { AnimeInfo } from "@/types/anime";
 import { Platform } from "react-native";
 
-const BASE_URL = "https://shikimori.one/api";
-const USER_AGENT = "NekoWatch/1.0 (https://github.com/nezdanchick/NekoWatch)";
+const GRAPHQL_URL = "https://shikimori.one/api/graphql";
+const USER_AGENT = "NekoWatch (https://github.com/nezdanchick/NekoWatch)";
 
-// Добавляем задержку между запросами для избежания rate limiting
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Улучшенные заголовки для запросов
-const getHeaders = () => {
-  const headers: Record<string, string> = {
-    "User-Agent": USER_AGENT,
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  };
-  
-  if (Platform.OS === 'web') {
-    headers["Origin"] = "https://shikimori.one";
-  }
-  
-  return headers;
-};
+const getHeaders = () => ({
+  "User-Agent": USER_AGENT,
+  "Content-Type": "application/json",
+  ...(Platform.OS === 'web' && { "Origin": "https://shikimori.one" })
+});
 
-// Функция для выполнения запросов с повторными попытками
+const animesQuery = `
+  id
+  name
+  russian
+  kind
+  score
+  airedOn { date }
+  poster { mainUrl }
+`;
+
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<Response> {
   try {
     const response = await fetch(url, options);
     
-    // Если получили 429 (Too Many Requests), ждем и пробуем снова
     if (response.status === 429 && retries > 0) {
-      console.log(`Rate limited, retrying in 2 seconds... (${retries} attempts left)`);
       await delay(2000);
       return fetchWithRetry(url, options, retries - 1);
     }
     
-    // Если получили 5xx ошибку, пробуем снова
     if (response.status >= 500 && retries > 0) {
-      console.log(`Server error ${response.status}, retrying in 1 second... (${retries} attempts left)`);
       await delay(1000);
       return fetchWithRetry(url, options, retries - 1);
     }
@@ -44,7 +39,6 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
     return response;
   } catch (error) {
     if (retries > 0) {
-      console.log(`Network error, retrying in 1 second... (${retries} attempts left)`);
       await delay(1000);
       return fetchWithRetry(url, options, retries - 1);
     }
@@ -52,130 +46,95 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
   }
 }
 
-export async function fetchAnimeList(
-  page = 1,
-  limit = 20,
-  order = "popularity",
-  kind?: string,
-  status?: string,
-  season?: string,
-  score?: number
-): Promise<AnimeShort[]> {
+async function graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Promise<T | null> {
   try {
-    let url = `${BASE_URL}/animes?page=${page}&limit=${limit}&order=${order}`;
-    
-    if (kind) url += `&kind=${kind}`;
-    if (status) url += `&status=${status}`;
-    if (season) url += `&season=${season}`;
-    if (score) url += `&score=${score}`;
-    
-    console.log(`Fetching anime list: ${url}`);
-    
-    const response = await fetchWithRetry(url, { 
+    const response = await fetchWithRetry(GRAPHQL_URL, {
+      method: 'POST',
       headers: getHeaders(),
-      method: 'GET'
+      body: JSON.stringify({ query, variables })
     });
-    
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} - ${await response.text()}`);
-      return [];
-    }
-    
-    const data = await response.json();
-    
-    // Проверяем, что получили массив
-    if (!Array.isArray(data)) {
-      console.warn("Unexpected data format from API:", data);
-      return [];
-    }
-    
+
+    if (!response.ok) return null;
+
+    const { data, errors } = await response.json();
+    if (errors) throw new Error(JSON.stringify(errors));
+
     return data;
   } catch (error) {
-    console.error("Error fetching anime list:", error);
-    return [];
-  }
-}
-
-export async function fetchAnimeDetails(id: number): Promise<AnimeDetailed | null> {
-  try {
-    if (!id || isNaN(id)) {
-      console.error("Invalid anime ID:", id);
-      return null;
-    }
-    
-    const url = `${BASE_URL}/animes/${id}`;
-    console.log(`Fetching anime details: ${url}`);
-    
-    await delay(300);
-    
-    const response = await fetchWithRetry(url, { 
-      headers: getHeaders(),
-      method: 'GET'
-    });
-    
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} - ${await response.text()}`);
-      return null;
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error(`Error fetching anime details for ID ${id}:`, error);
+    console.error("GraphQL request error:", error);
     return null;
   }
 }
 
-export async function searchAnime(query: string, page = 1, limit = 20): Promise<AnimeShort[]> {
+export async function fetchAnimeList(
+  page = 1,
+  limit = 20,
+  order: "ranked" | string = "ranked",
+  kind?: string,
+  status?: string,
+  season?: string,
+  score?: number
+): Promise<AnimeInfo[]> {
+  const query = `
+query(
+  $page: PositiveInt
+      $limit: PositiveInt
+      $order: OrderEnum
+      $kind: AnimeKindString
+      $status: AnimeStatusString
+      $season: SeasonString
+      $score: Int
+) {
+  animes(
+    page: $page
+        limit: $limit
+        order: $order
+        kind: $kind
+        status: $status
+        season: $season
+        score: $score
+  ) {
+    ${animesQuery}
+  }
+}
+`;
+
+  const variables = { page, limit, order, kind, status, season, score };
+  const data = await graphqlRequest<{ animes: AnimeInfo[] }>(query, variables);
+  return data?.animes || [];
+}
+
+export async function fetchAnimeDetails(id: number): Promise<AnimeInfo | null> {
+  const query = `
+query($ids: String!) {
+  animes(ids: $ids) {
+    ${animesQuery}
+  }
+}
+`;
+
   try {
-    if (!query || query.trim() === '') {
-      return [];
-    }
-    
-    const url = `${BASE_URL}/animes?search=${encodeURIComponent(query)}&page=${page}&limit=${limit}`;
-    console.log(`Searching anime: ${url}`);
-    
-    const response = await fetchWithRetry(url, { 
-      headers: getHeaders(),
-      method: 'GET'
-    });
-    
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} - ${await response.text()}`);
-      return [];
-    }
-    
-    const data = await response.json();
-    
-    if (!Array.isArray(data)) {
-      console.warn("Unexpected data format from API:", data);
-      return [];
-    }
-    
-    return data;
+    await delay(300);
+    const data = await graphqlRequest<{ animes: AnimeInfo[] }>(query, { ids: String(id) });
+    return data?.animes?.[0] || null;
   } catch (error) {
-    console.error("Error searching anime:", error);
-    return [];
+    console.error("Error fetching anime details:", error);
+    return null;
   }
 }
 
-export async function fetchGenres() {
-  try {
-    const url = `${BASE_URL}/genres`;
-    console.log(`Fetching genres: ${url}`);
-    
-    const response = await fetchWithRetry(url, { 
-      headers: getHeaders(),
-      method: 'GET'
-    });
-    
-    if (!response.ok) {
-      console.error(`API Error: ${response.status} - ${await response.text()}`);
-      return [];
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching genres:", error);
-    return [];
+export async function searchAnime(query: string, page = 1, limit = 20): Promise<AnimeInfo[]> {
+  if (!query.trim()) return [];
+
+  const gqlQuery = `
+query($search: String!, $page: Int, $limit: Int) {
+  animes(search: $search, page: $page, limit: $limit) {
+    ${animesQuery}
   }
+}
+`;
+
+  const variables = { search: query, page, limit };
+  const data = await graphqlRequest<{ animes: AnimeInfo[] }>(gqlQuery, variables);
+  return data?.animes || [];
 }

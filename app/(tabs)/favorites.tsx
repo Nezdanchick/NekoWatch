@@ -3,14 +3,14 @@ import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } f
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
 
 export default function FavoritesScreen() {
   const { colors } = useThemeStore();
   const { favorites } = useAnimeStore();
-  const [favoriteAnimes, setFavoriteAnimes] = useState<AnimeShort[]>([]);
+  const [favoriteAnimes, setFavoriteAnimes] = useState<AnimeInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -25,7 +25,7 @@ export default function FavoritesScreen() {
     setError(null);
 
     try {
-      const animeResults: AnimeShort[] = [];
+      const animeResults: AnimeInfo[] = [];
 
       for (const id of favorites) {
         try {
@@ -58,7 +58,7 @@ export default function FavoritesScreen() {
     loadFavorites();
   };
 
-  const renderItem = ({ item }: { item: AnimeShort }) => (
+  const renderItem = ({ item }: { item: AnimeInfo }) => (
     <View style={styles.cardContainer}>
       <AnimeCard anime={item} />
     </View>
@@ -103,10 +103,6 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   listContent: {
     paddingHorizontal: 8,

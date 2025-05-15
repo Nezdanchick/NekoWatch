@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
@@ -12,10 +12,10 @@ const animeCount = 15;
 
 export default function HomeScreen() {
   const { colors } = useThemeStore();
-  const [popularAnime, setPopularAnime] = useState<AnimeShort[]>([]);
-  const [latestAnime, setLatestAnime] = useState<AnimeShort[]>([]);
-  const [ongoingAnime, setOngoingAnime] = useState<AnimeShort[]>([]);
-  const [anonsAnime, setAnonsAnime] = useState<AnimeShort[]>([]);
+  const [popularAnime, setPopularAnime] = useState<AnimeInfo[]>([]);
+  const [latestAnime, setLatestAnime] = useState<AnimeInfo[]>([]);
+  const [ongoingAnime, setOngoingAnime] = useState<AnimeInfo[]>([]);
+  const [anonsAnime, setAnonsAnime] = useState<AnimeInfo[]>([]);
   const [loading, setLoading] = useState({
     popular: true,
     new: true,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginVertical: 8,
+    marginBottom: 8,
   },
   errorContainer: {
     padding: 16,

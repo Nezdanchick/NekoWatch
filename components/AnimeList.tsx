@@ -1,11 +1,11 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AnimeCard from './AnimeCard';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeListProps {
-  data: AnimeShort[];
+  data: AnimeInfo[];
   loading: boolean;
   error: string | null;
   onEndReached?: () => void;
@@ -100,8 +100,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginHorizontal: 16,
-    marginVertical: 12,
+    margin: 16,
   },
   footer: {
     padding: 16,

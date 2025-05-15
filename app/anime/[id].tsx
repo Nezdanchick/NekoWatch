@@ -5,7 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { AnimeDetailed } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
@@ -16,7 +16,7 @@ export default function AnimeDetailsScreen() {
   const router = useRouter();
   const animeId = parseInt(id as string);
 
-  const [anime, setAnime] = useState<AnimeDetailed | null>(null);
+  const [anime, setAnime] = useState<AnimeInfo | null>(null);
   const [kodikTranslations, setKodikTranslations] = useState<any[]>([]);
   const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +57,7 @@ export default function AnimeDetailsScreen() {
           screenshots = kodikResults[0].material_data.screenshots || [];
         }
 
-        setAnime({ ...animeDetails, description: kodikDescription });
+        setAnime(animeDetails);
         setAnimeDescription(kodikDescription);
         setKodikTranslations(kodikResults);
         setKodikScreenshots(screenshots);
@@ -72,8 +72,8 @@ export default function AnimeDetailsScreen() {
     loadAnimeDetails();
   }, [animeId]);
 
-  const imageUrl = anime && anime.image && anime.image.original
-    ? `https://shikimori.one${anime.image.original}`
+  const imageUrl = anime && anime.poster && anime.poster.mainUrl
+    ? anime.poster.mainUrl
     : 'https://via.placeholder.com/300x450/1E1E1E/FFFFFF?text=No+Image';
 
   const handleWatchPress = (link: string) => {

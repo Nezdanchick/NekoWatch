@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AnimeDetailed, AnimeShort, WatchHistoryItem } from '@/types/anime';
+import { AnimeInfo, WatchHistoryItem } from '@/types/anime';
 
 interface AnimeState {
   favorites: number[];

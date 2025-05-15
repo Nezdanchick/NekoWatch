@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeCardProps {
-  anime: AnimeShort;
+  anime: AnimeInfo;
   size?: 'small' | 'medium' | 'large';
 }
 
@@ -62,22 +62,22 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: `https://shikimori.one${anime.image.original}` }}
+          source={{ uri: anime.poster.mainUrl }}
           style={[styles.image, sizeStyles.image]}
           resizeMode="cover"
         />
         <View style={[styles.metaContainer, { backgroundColor: colors.background }]}>
-          <Text style={[styles.meta, { color: colors.subtext }]}>
-            {anime.kind && anime.kind.toUpperCase()}
-          </Text>
-          {anime.aired_on && (
-            <Text style={[styles.aired_on, { color: colors.disabled }]}>
-              {anime.aired_on.substring(0, anime.aired_on.lastIndexOf('-'))}
+          {anime.kind && (
+            <Text style={[styles.meta, { color: colors.subtext }]}>
+              {anime.kind && anime.kind.toUpperCase()}
             </Text>
           )}
-          {anime.score && (
-            <Text style={[styles.score, { color: colors.primary }]}>{anime.score}</Text>
+          {anime.airedOn.date && (
+            <Text style={[styles.date, { color: colors.disabled }]}>
+              {anime.airedOn.date.toString()}
+            </Text>
           )}
+          <Text style={[styles.score, { color: colors.primary }]}>{anime.score !== 0 ? anime.score.toString() : '-'}</Text>
         </View>
         <Pressable
           style={[styles.favoriteButton, { backgroundColor: colors.background }]}
@@ -124,7 +124,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
     padding: 6,
     zIndex: 10,
@@ -161,7 +160,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     flexShrink: 1,
   },
-  aired_on: {
+  date: {
     fontSize: 10,
     flexShrink: 1,
   },
