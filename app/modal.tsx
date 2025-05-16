@@ -6,10 +6,7 @@ export default function ModalScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Modal</Text>
       <View style={styles.separator} />
-      <Text>This is an example modal. You can edit it in app/modal.tsx.</Text>
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === "ios" ? "light" : "auto"} />
+      <Text>This is an empty modal.</Text>
     </View>
   );
 }

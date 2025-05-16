@@ -3,9 +3,8 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { StatusBar } from "react-native";
+import { StatusBar } from 'expo-status-bar';
 import { ErrorBoundary } from "./error-boundary";
-import * as SystemUI from "expo-system-ui"
 import { useThemeStore } from '@/store/theme-store';
 
 export const unstable_settings = {
@@ -15,13 +14,9 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colors } = useThemeStore();
-
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
   });
-
-  SystemUI.setBackgroundColorAsync(colors.background);
 
   useEffect(() => {
     if (error) {
@@ -42,7 +37,6 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
-      <StatusBar backgroundColor='#00000000' />
       <RootLayoutNav />
     </ErrorBoundary>
   );
@@ -54,19 +48,12 @@ function RootLayoutNav() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-        headerTintColor: colors.text,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
         contentStyle: {
-          backgroundColor: colors.background,
           elevation: 0,
           shadowOpacity: 0,
         },
         statusBarStyle: colors.statusBar,
+        statusBarBackgroundColor: colors.background,
         statusBarHidden: false,
         navigationBarHidden: true,
       }}

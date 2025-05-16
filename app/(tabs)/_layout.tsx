@@ -13,7 +13,6 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabIcon,
         headerStyle: {
-          backgroundColor: colors.background,
           borderBottomWidth: 0,
           height: 30,
           elevation: 0,
@@ -29,10 +28,6 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 12,
-        },
-        headerTintColor: colors.text,
-        headerTitleStyle: {
-          fontWeight: 'bold',
         },
         headerShown: false
       }}
