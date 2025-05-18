@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 import { AnimeInfo } from '@/types/anime';
@@ -8,7 +9,18 @@ import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 
-const animeCount = 15;
+const animeCount = 25;
+const CACHE_KEYS = {
+  popular: 'home_popularAnime',
+  latest: 'home_latestAnime',
+  ongoing: 'home_ongoingAnime',
+  anons: 'home_anonsAnime',
+};
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
 
 export default function HomeScreen() {
   const { colors } = useThemeStore();
@@ -31,55 +43,102 @@ export default function HomeScreen() {
 
   const animationValue = useRef(new Animated.Value(1)).current;
 
-  const loadData = useCallback(async () => {
+  const getCachedData = async <T,>(key: string): Promise<CacheEntry<T> | null> => {
     try {
-      setLoading(prev => ({ ...prev, popular: true }));
-      const popular = await fetchAnimeList(1, animeCount, 'popularity');
-      if (popular && popular.length > 0) {
-        setPopularAnime(popular);
+      const cached = await AsyncStorage.getItem(key);
+      if (cached) {
+        return JSON.parse(cached);
       }
-      setLoading(prev => ({ ...prev, popular: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const latest = await fetchAnimeList(1, animeCount, 'ranked_shiki', undefined, 'latest');
-      if (latest && latest.length > 0) {
-        setLatestAnime(latest);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const ongoing = await fetchAnimeList(1, animeCount, 'ranked', undefined, 'ongoing');
-      if (ongoing && ongoing.length > 0) {
-        setOngoingAnime(ongoing);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const anons = await fetchAnimeList(1, animeCount, 'aired_on', undefined, 'anons');
-      if (anons && anons.length > 0) {
-        setAnonsAnime(anons);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      setLoading(prev => ({ ...prev, updates: true }));
-      setLoading(prev => ({ ...prev, updates: false }));
+      return null;
     } catch (err) {
-      setError('Ошибка при загрузке данных');
-      console.error(err);
-    } finally {
-      setLoading({
-        popular: false,
-        new: false,
-        updates: false,
-      });
+      console.error(`Error reading cache for ${key}:`, err);
+      return null;
     }
-  }, []);
+  };
+
+  const setCachedData = async <T,>(key: string, data: T): Promise<void> => {
+    try {
+      const cacheEntry: CacheEntry<T> = {
+        data,
+        timestamp: Date.now(),
+      };
+      await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+    } catch (err) {
+      console.error(`Error writing cache for ${key}:`, err);
+    }
+  };
+
+  const clearHomeCache = async () => {
+    try {
+      await Promise.all(
+        Object.values(CACHE_KEYS).map((key) => AsyncStorage.removeItem(key))
+      );
+    } catch (err) {
+      console.error('Error clearing home cache:', err);
+    }
+  };
+
+  const loadAnimeData = useCallback(
+    async (
+      cacheKey: string,
+      setData: (data: AnimeInfo[]) => void,
+      fetchParams: Parameters<typeof fetchAnimeList>,
+      loadingKey: keyof typeof loading
+    ) => {
+      const cached = await getCachedData<AnimeInfo[]>(cacheKey);
+
+      if (cached?.data) {
+        setData(cached.data);
+        setLoading((prev) => ({ ...prev, [loadingKey]: false }));
+      }
+
+      if (!cached) {
+        try {
+          const freshData = await fetchAnimeList(...fetchParams);
+          if (freshData && freshData.length > 0) {
+            setData(freshData);
+            await setCachedData(cacheKey, freshData);
+          }
+        } catch (err) {
+          if (!cached) {
+            setError('Ошибка при загрузке данных');
+          }
+          console.error(`Error fetching ${cacheKey}:`, err);
+        } finally {
+          if (!cached) {
+            setLoading((prev) => ({ ...prev, [loadingKey]: false }));
+          }
+        }
+      }
+    },
+    []
+  );
+
+  const loadData = useCallback(async () => {
+    await Promise.all([
+      loadAnimeData(CACHE_KEYS.popular, setPopularAnime, [1, animeCount, 'popularity'], 'popular'),
+      loadAnimeData(
+        CACHE_KEYS.latest,
+        setLatestAnime,
+        [1, animeCount, 'ranked_shiki', undefined, 'latest'],
+        'new'
+      ),
+      loadAnimeData(
+        CACHE_KEYS.ongoing,
+        setOngoingAnime,
+        [1, animeCount, 'ranked', undefined, 'ongoing'],
+        'new'
+      ),
+      loadAnimeData(
+        CACHE_KEYS.anons,
+        setAnonsAnime,
+        [1, animeCount, 'aired_on', undefined, 'anons'],
+        'new'
+      ),
+    ]);
+
+    setLoading((prev) => ({ ...prev, updates: false }));
+  }, [loadAnimeData]);
 
   useEffect(() => {
     loadData();
@@ -88,13 +147,14 @@ export default function HomeScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setError(null);
+    await clearHomeCache();
     await loadData();
     setRefreshing(false);
   }, [loadData]);
 
   const handleScrollBeginDrag = () => {
     Animated.timing(animationValue, {
-      toValue: 0, // Скрыть
+      toValue: 0,
       duration: 200,
       useNativeDriver: true,
     }).start();
@@ -102,7 +162,7 @@ export default function HomeScreen() {
 
   const handleScrollEndDrag = () => {
     Animated.timing(animationValue, {
-      toValue: 1, // Показать
+      toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
@@ -110,7 +170,7 @@ export default function HomeScreen() {
 
   const translateY = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [100, 0], // Скрыть вниз, вернуть на место
+    outputRange: [100, 0],
   });
 
   const opacity = animationValue;
@@ -120,13 +180,11 @@ export default function HomeScreen() {
       <Animated.ScrollView
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {error && (
           <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-            <Text style={[styles.container, { color: colors.secondary }]}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
           </View>
         )}
 
@@ -179,15 +237,9 @@ export default function HomeScreen() {
 
       {recentHistory.length > 0 && (
         <Animated.View
-          style={[
-            styles.watchHistoryContainer,
-            { transform: [{ translateY }], opacity },
-          ]}
+          style={[styles.watchHistoryContainer, { transform: [{ translateY }], opacity }]}
         >
-          <SwipableHistoryItem
-            key={`${recentHistory[0].animeId}`}
-            item={recentHistory[0]}
-          />
+          <SwipableHistoryItem key={`${recentHistory[0].animeId}`} item={recentHistory[0]} />
         </Animated.View>
       )}
     </SafeAreaView>
