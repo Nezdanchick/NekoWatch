@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
+import { StyleSheet, Text, View, RefreshControl, Animated, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
@@ -8,6 +8,7 @@ import { AnimeInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
 const animeCount = 25;
 const CACHE_KEYS = {
@@ -42,6 +43,13 @@ export default function HomeScreen() {
     .slice(0, 5);
 
   const animationValue = useRef(new Animated.Value(1)).current;
+
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    }
+  }, []);
 
   const getCachedData = async <T,>(key: string): Promise<CacheEntry<T> | null> => {
     try {

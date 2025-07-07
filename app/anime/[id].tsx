@@ -10,6 +10,8 @@ import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
 
+const DESCRIPTION_PLACEHOLDER = "Кажется, здесь ничего нет (￣▽￣*)";
+
 export default function AnimeDetailsScreen() {
   const { colors } = useThemeStore();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -53,7 +55,7 @@ export default function AnimeDetailsScreen() {
         let screenshots: string[] = [];
 
         if (kodikResults.length > 0 && kodikResults[0].material_data) {
-          kodikDescription = kodikResults[0].material_data.description;
+          kodikDescription = kodikResults[0].material_data.description || DESCRIPTION_PLACEHOLDER;
           screenshots = kodikResults[0].material_data.screenshots || [];
         }
 
