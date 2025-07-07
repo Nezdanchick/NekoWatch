@@ -6,6 +6,8 @@ import { AnimeInfo } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 
+const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
+
 interface AnimeCardProps {
   anime: AnimeInfo;
   size?: 'small' | 'medium' | 'large';
@@ -62,7 +64,7 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: anime.poster.mainUrl }}
+          source={{ uri: anime.poster ? anime.poster.mainUrl : MISSING_POSTER_URL }}
           style={[styles.image, sizeStyles.image]}
           resizeMode="cover"
         />

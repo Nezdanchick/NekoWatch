@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
@@ -15,48 +15,48 @@ export default function FavoritesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadFavorites = async () => {
-    if (favorites.length === 0) {
-      setFavoriteAnimes([]);
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    let isMounted = true;
+    const loadFavorites = async () => {
+      setLoading(true);
+      setError(null);
 
-    setError(null);
-
-    try {
-      const animeResults: AnimeInfo[] = [];
-
-      for (const id of favorites) {
-        try {
-          const animeDetails = await fetchAnimeDetails(id);
-          if (animeDetails) {
-            animeResults.push(animeDetails);
-          }
-        } catch (err) {
-          console.error(`Ошибка при загрузке аниме с ID ${id}:`, err);
+      if (favorites.length === 0) {
+        if (isMounted) {
+          setFavoriteAnimes([]);
+          setLoading(false);
+          setRefreshing(false);
         }
+        return;
       }
 
-      setFavoriteAnimes(animeResults);
-    } catch (err) {
-      setError('Ошибка при загрузке избранного');
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+      try {
+        const animeResults: AnimeInfo[] = [];
+        for (const id of favorites) {
+          try {
+            const animeDetails = await fetchAnimeDetails(id);
+            if (animeDetails) {
+              animeResults.push(animeDetails);
+            }
+          } catch (err) {
+            console.error(`Ошибка при загрузке аниме с ID ${id}:`, err);
+          }
+        }
+        if (isMounted) setFavoriteAnimes(animeResults);
+      } catch (err) {
+        if (isMounted) setError('Ошибка при загрузке избранного');
+        console.error(err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    };
 
-  useEffect(() => {
-    setLoading(true);
     loadFavorites();
-  }, [favorites]);
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadFavorites();
-  };
+    return () => { isMounted = false; };
+  }, [favorites.join(',')]); 
 
   const renderItem = ({ item }: { item: AnimeInfo }) => (
     <View style={styles.cardContainer}>
@@ -89,7 +89,6 @@ export default function FavoritesScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
-              onRefresh={onRefresh}
               colors={[colors.primary]}
               tintColor={colors.primary}
             />
