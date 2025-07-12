@@ -49,3 +49,14 @@ export interface WatchHistoryItem {
   image: string;
   lastWatched: number;
 }
+
+// tv movie ova ona special music tv_special web
+const HIDE_KINDS = ['music', 'ona'];
+
+export function canShow(anime: AnimeInfo) {
+  return !HIDE_KINDS.includes(anime.kind);
+}
+
+export function canOpen(anime: AnimeInfo) {
+  return anime.score !== 0;
+}

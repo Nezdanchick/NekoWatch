@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AnimeCard from './AnimeCard';
-import { AnimeInfo } from '@/types/anime';
+import { AnimeInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeListProps {
@@ -57,7 +57,7 @@ export default function AnimeList({
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       )}
       <FlatList
-        data={data}
+        data={data.filter(anime => canShow(anime))}
         renderItem={({ item }) => <AnimeCard anime={item} size={cardSize} />}
         keyExtractor={(item) => item.id.toString()}
         horizontal={horizontal}
