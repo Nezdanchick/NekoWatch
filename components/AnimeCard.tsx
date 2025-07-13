@@ -2,11 +2,9 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { AnimeInfo, canOpen } from '@/types/anime';
+import { AnimeInfo, MISSING_POSTER_URL, canOpen } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
-
-const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
 
 interface AnimeCardProps {
   anime: AnimeInfo;
@@ -103,7 +101,7 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
             styles.lockOverlay, { opacity: overlayAnim, backgroundColor: colors.background },
           ]}
         >
-          <Text style={[styles.lockText, { color: colors.subtext }]}>¯\\_(ツ)_/¯</Text>
+          <Text style={[styles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
           <Text style={[styles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
         </Animated.View>
         <View style={[styles.metaContainer, { backgroundColor: colors.background }]}>

@@ -50,6 +50,8 @@ export interface WatchHistoryItem {
   lastWatched: number;
 }
 
+export const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
+
 // tv movie ova ona special music tv_special web
 const HIDE_KINDS = ['music', 'ona', 'tv_special'];
 
