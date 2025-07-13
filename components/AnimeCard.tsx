@@ -11,9 +11,10 @@ const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview
 interface AnimeCardProps {
   anime: AnimeInfo;
   size?: 'small' | 'medium' | 'large';
+  onRemoveFavorite?: (animeId: number) => void;
 }
 
-export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
+export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: AnimeCardProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
   const { isFavorite, addToFavorites, removeFromFavorites } = useAnimeStore();
@@ -43,7 +44,7 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
       router.push(`/anime/${anime.id}`);
     } else if (canAnim) {
       showOverlay();
-      setTimeout(hideOverlay, 1200); // Оверлей исчезнет через 1.2 секунды
+      setTimeout(hideOverlay, 1200);
       return;
     }
   };
@@ -52,8 +53,11 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
     e.stopPropagation();
     if (favorite) {
       removeFromFavorites(anime.id);
+      if (onRemoveFavorite) {
+        onRemoveFavorite(anime.id);
+      }
     } else {
-      addToFavorites(anime.id);
+      addToFavorites(anime);
     }
   };
 

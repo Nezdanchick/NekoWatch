@@ -29,9 +29,15 @@ export default function AnimeDetailsScreen() {
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
 
   const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
-  const favorite = isFavorite(animeId);
-  
+  const [favorite, setFavorite] = useState(false);
+
   const screenWidth = Dimensions.get('window').width;
+
+  useEffect(() => {
+    if (anime) {
+      setFavorite(isFavorite(anime.id));
+    }
+  }, [anime]);
 
   useEffect(() => {
     const loadAnimeDetails = async () => {
@@ -100,11 +106,6 @@ export default function AnimeDetailsScreen() {
     }
   };
 
-  const handleScroll = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
-    setCurrentScreenshotIndex(index);
-  };
-
   let translationAnimation: Animated.CompositeAnimation;
 
   const toggleTranslationsVisibility = () => {
@@ -131,18 +132,6 @@ export default function AnimeDetailsScreen() {
     }
   };
 
-  const cleanDescription = (description: string): string => {
-    return description
-      .replace(/\[\[(.*?)\]\]/g, '$1')
-      .replace(/\[(.*?)\]/g, '$1')
-      .replace(/anime=\d+([^/]+)\/anime/gi, '$1')
-      .replace(/character=\d+([^/]+)\/character/gi, '$1')
-      .replace(/url=https?:\/\/ru\.wikipedia\.org\/wiki\/([^/]+)\/url/gi, '$1')
-      .replace(/<\/?[^>]+(>|$)/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  };
-
   if (loading) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
@@ -161,11 +150,13 @@ export default function AnimeDetailsScreen() {
   }
 
   function toggleFavorite(): void {
+    if (!anime) return;
     if (favorite) {
-      removeFromFavorites(animeId);
+      removeFromFavorites(anime.id);
     } else {
-      addToFavorites(animeId);
+      addToFavorites(anime);
     }
+    setFavorite(!favorite);
   }
 
   return (
@@ -227,7 +218,7 @@ export default function AnimeDetailsScreen() {
               <FontAwesome
                 name="heart"
                 size={16}
-                color={favorite ? colors.secondary : colors.text || '#FFFFFF'}
+                color={favorite ? colors.secondary : colors.text}
               />
             </Pressable>
 
