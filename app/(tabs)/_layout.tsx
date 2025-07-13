@@ -5,34 +5,34 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
 
 export default function TabLayout() {
-  const { colors } = useThemeStore();
-  
+  const colors = useThemeStore(state => state.colors);
+
+  const screenOptions = React.useMemo(() => ({
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.tabIcon,
+    headerStyle: {
+      backgroundColor: colors.background,
+      borderBottomWidth: 0,
+      height: 30,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    tabBarStyle: {
+      backgroundColor: colors.tabBar,
+      borderTopColor: "transparent",
+      borderTopWidth: 0,
+      elevation: 0,
+      shadowOpacity: 0,
+      height: 60
+    },
+    tabBarLabelStyle: {
+      fontSize: 12,
+    },
+    headerShown: false
+  }), [colors]);
+
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.tabIcon,
-        headerStyle: {
-          backgroundColor: colors.background,
-          borderBottomWidth: 0,
-          height: 30,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        tabBarStyle: {
-          backgroundColor: colors.tabBar,
-          borderTopColor: "transparent",
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0,
-          height: 60
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-        },
-        headerShown: false
-      }}
-    >
+    <Tabs screenOptions={screenOptions}>
       <Tabs.Screen
         name="index"
         options={{

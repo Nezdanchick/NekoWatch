@@ -51,7 +51,7 @@ export interface WatchHistoryItem {
 }
 
 // tv movie ova ona special music tv_special web
-const HIDE_KINDS = ['music', 'ona'];
+const HIDE_KINDS = ['music', 'ona', 'tv_special'];
 
 export function canShow(anime: AnimeInfo) {
   return !HIDE_KINDS.includes(anime.kind);

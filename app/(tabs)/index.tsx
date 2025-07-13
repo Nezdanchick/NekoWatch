@@ -29,11 +29,6 @@ export default function HomeScreen() {
   const [latestAnime, setLatestAnime] = useState<AnimeInfo[]>([]);
   const [ongoingAnime, setOngoingAnime] = useState<AnimeInfo[]>([]);
   const [anonsAnime, setAnonsAnime] = useState<AnimeInfo[]>([]);
-  const [loading, setLoading] = useState({
-    popular: true,
-    new: true,
-    updates: true,
-  });
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -43,7 +38,6 @@ export default function HomeScreen() {
     .slice(0, 5);
 
   const animationValue = useRef(new Animated.Value(1)).current;
-
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
@@ -90,14 +84,12 @@ export default function HomeScreen() {
     async (
       cacheKey: string,
       setData: (data: AnimeInfo[]) => void,
-      fetchParams: Parameters<typeof fetchAnimeList>,
-      loadingKey: keyof typeof loading
+      fetchParams: Parameters<typeof fetchAnimeList>
     ) => {
       const cached = await getCachedData<AnimeInfo[]>(cacheKey);
 
       if (cached?.data) {
         setData(cached.data);
-        setLoading((prev) => ({ ...prev, [loadingKey]: false }));
       }
 
       if (!cached) {
@@ -112,10 +104,6 @@ export default function HomeScreen() {
             setError('Ошибка при загрузке данных');
           }
           console.error(`Error fetching ${cacheKey}:`, err);
-        } finally {
-          if (!cached) {
-            setLoading((prev) => ({ ...prev, [loadingKey]: false }));
-          }
         }
       }
     },
@@ -124,28 +112,23 @@ export default function HomeScreen() {
 
   const loadData = useCallback(async () => {
     await Promise.all([
-      loadAnimeData(CACHE_KEYS.popular, setPopularAnime, [1, animeCount, 'popularity'], 'popular'),
+      loadAnimeData(CACHE_KEYS.popular, setPopularAnime, [1, animeCount, 'popularity']),
       loadAnimeData(
         CACHE_KEYS.latest,
         setLatestAnime,
-        [1, animeCount, 'ranked_shiki', undefined, 'latest'],
-        'new'
+        [1, animeCount, 'ranked_shiki', undefined, 'latest']
       ),
       loadAnimeData(
         CACHE_KEYS.ongoing,
         setOngoingAnime,
-        [1, animeCount, 'ranked', undefined, 'ongoing'],
-        'new'
+        [1, animeCount, 'ranked', undefined, 'ongoing']
       ),
       loadAnimeData(
         CACHE_KEYS.anons,
         setAnonsAnime,
-        [1, animeCount, 'aired_on', undefined, 'anons'],
-        'new'
+        [1, animeCount, 'aired_on', undefined, 'anons']
       ),
     ]);
-
-    setLoading((prev) => ({ ...prev, updates: false }));
   }, [loadAnimeData]);
 
   useEffect(() => {
@@ -200,7 +183,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Популярное аниме"
             data={popularAnime}
-            loading={loading.popular}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -211,7 +194,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Последние релизы"
             data={latestAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -222,7 +205,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Онгоинги"
             data={ongoingAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -233,7 +216,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Анонсы"
             data={anonsAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"

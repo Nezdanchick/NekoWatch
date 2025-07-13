@@ -12,7 +12,6 @@ interface AnimeListProps {
   horizontal?: boolean;
   title?: string;
   cardSize?: 'small' | 'medium' | 'large';
-  emptyMessage?: string;
 }
 
 export default function AnimeList({
@@ -23,7 +22,6 @@ export default function AnimeList({
   horizontal = false,
   title,
   cardSize = 'medium',
-  emptyMessage = 'Нет данных для отображения'
 }: AnimeListProps) {
   const { colors } = useThemeStore();
 
@@ -44,11 +42,7 @@ export default function AnimeList({
   }
 
   if (data.length === 0 && !loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={[styles.emptyText, { color: colors.subtext }]}>{emptyMessage}</Text>
-      </View>
-    );
+    return null;
   }
 
   return (

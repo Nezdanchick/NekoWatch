@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { AnimeInfo } from '@/types/anime';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
+import LoadingScreen from '@/components/LoadingScreen';
+
+const FAVORITES_CACHE_KEY = 'favorites_anime_cache';
 
 export default function FavoritesScreen() {
   const { colors } = useThemeStore();
@@ -15,48 +19,70 @@ export default function FavoritesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    const loadFavorites = async () => {
-      setLoading(true);
-      setError(null);
+  const getCachedFavorites = async (): Promise<AnimeInfo[]> => {
+    try {
+      const cached = await AsyncStorage.getItem(FAVORITES_CACHE_KEY);
+      return cached ? JSON.parse(cached) : [];
+    } catch (err) {
+      return [];
+    }
+  };
 
-      if (favorites.length === 0) {
-        if (isMounted) {
-          setFavoriteAnimes([]);
-          setLoading(false);
-          setRefreshing(false);
-        }
-        return;
-      }
+  const setCachedFavorites = async (data: AnimeInfo[]) => {
+    try {
+      await AsyncStorage.setItem(FAVORITES_CACHE_KEY, JSON.stringify(data));
+    } catch (_error) { }
+  };
 
-      try {
-        const animeResults: AnimeInfo[] = [];
-        for (const id of favorites) {
+  const loadFavorites = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const cached = await getCachedFavorites();
+    if (cached.length > 0) {
+      setFavoriteAnimes(cached);
+      setLoading(false);
+    }
+
+    if (favorites.length === 0) {
+      setFavoriteAnimes([]);
+      setLoading(false);
+      setRefreshing(false);
+      await setCachedFavorites([]);
+      return;
+    }
+
+    try {
+      const animeResults = await Promise.all(
+        favorites.map(async (id) => {
           try {
-            const animeDetails = await fetchAnimeDetails(id);
-            if (animeDetails) {
-              animeResults.push(animeDetails);
-            }
+            return await fetchAnimeDetails(id);
           } catch (err) {
             console.error(`Ошибка при загрузке аниме с ID ${id}:`, err);
+            return null;
           }
-        }
-        if (isMounted) setFavoriteAnimes(animeResults);
-      } catch (err) {
-        if (isMounted) setError('Ошибка при загрузке избранного');
-        console.error(err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-          setRefreshing(false);
-        }
-      }
-    };
+        })
+      );
+      const filtered = animeResults.filter(Boolean) as AnimeInfo[];
+      setFavoriteAnimes(filtered);
+      await setCachedFavorites(filtered);
+    } catch (err) {
+      setError('Ошибка при загрузке избранного');
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [favorites]);
 
+  useEffect(() => {
     loadFavorites();
-    return () => { isMounted = false; };
-  }, [favorites.join(',')]); 
+  }, [loadFavorites]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadFavorites();
+  };
 
   const renderItem = ({ item }: { item: AnimeInfo }) => (
     <View style={styles.cardContainer}>
@@ -64,13 +90,12 @@ export default function FavoritesScreen() {
     </View>
   );
 
+  console.log(favoriteAnimes);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
-
       {loading && !refreshing ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
+        <LoadingScreen />
       ) : error ? (
         <View style={styles.centerContainer}>
           <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
@@ -81,7 +106,7 @@ export default function FavoritesScreen() {
         </View>
       ) : (
         <FlatList
-          data={favoriteAnimes}
+          data={favoriteAnimes.filter((item, index) => item.id === favoriteAnimes[index].id)}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
@@ -89,6 +114,7 @@ export default function FavoritesScreen() {
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
+              onRefresh={onRefresh}
               colors={[colors.primary]}
               tintColor={colors.primary}
             />

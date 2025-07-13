@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
@@ -18,9 +18,11 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
   const router = useRouter();
   const { isFavorite, addToFavorites, removeFromFavorites } = useAnimeStore();
   const favorite = isFavorite(anime.id);
+  const [canAnim, setCanAnim] = useState(true);
   const overlayAnim = useRef(new Animated.Value(0)).current;
 
   const showOverlay = () => {
+    setCanAnim(false);
     Animated.timing(overlayAnim, {
       toValue: 1,
       duration: 250,
@@ -33,13 +35,13 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
       toValue: 0,
       duration: 250,
       useNativeDriver: true,
-    }).start();
+    }).start(() => setCanAnim(true));
   };
 
   const handlePress = () => {
     if (canOpen(anime)) {
       router.push(`/anime/${anime.id}`);
-    } else {
+    } else if (canAnim) {
       showOverlay();
       setTimeout(hideOverlay, 1200); // Оверлей исчезнет через 1.2 секунды
       return;
@@ -222,6 +224,7 @@ const styles = StyleSheet.create({
   },
   score: {
     fontSize: 12,
+    flexShrink: 1,
     fontWeight: '700',
   },
 });
