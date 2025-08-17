@@ -3,8 +3,22 @@
 
 Приложение для просмотра аниме, разработанное на React Native, позволяет пользователям удобно просматривать любимые тайты с мобильных устройств. Оно предлагает интуитивно понятный интерфейс, быструю загрузку контента и возможность выбора субтитров или дубляжа.
 
+## Скриншоты
+<table>
+  <tr style="display: flex; flex-wrap: wrap; justify-content: center;">
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_1_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_2_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_3_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_4_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_5_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_6_2025-08-17_22-02-29.jpg" width="250"></td>
+  </tr>
+</table>
+
+
 ## Содержание
 - [Содержание](#содержание)
+- [Скриншоты](#скриншоты)
 - [Технологии](#технологии)
 - [Использование](#использование)
 - [TODO](#todo)
