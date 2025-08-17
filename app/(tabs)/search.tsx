@@ -3,14 +3,14 @@ import { StyleSheet, View, Text, FlatList, ActivityIndicator, TextInput, Platfor
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { searchAnime } from '@/services/shikimori-api';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo, canShow } from '@/types/anime';
 import SearchBar from '@/components/SearchBar';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<AnimeShort[]>([]);
+  const [searchResults, setSearchResults] = useState<AnimeInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -82,7 +82,7 @@ export default function SearchScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: AnimeShort }) => (
+  const renderItem = ({ item }: { item: AnimeInfo }) => (
     <View style={styles.cardContainer}>
       <AnimeCard anime={item} />
     </View>
@@ -113,7 +113,7 @@ export default function SearchScreen() {
           </View>
         ) : (
           <FlatList
-            data={searchResults}
+            data={searchResults.filter(anime => canShow(anime))}
             renderItem={renderItem}
             keyExtractor={(item) => item.id.toString()}
             numColumns={2}

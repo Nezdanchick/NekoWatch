@@ -1,87 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, View, Text, FlatList, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
-import { fetchAnimeDetails } from '@/services/shikimori-api';
-import { AnimeShort } from '@/types/anime';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
+import { AnimeInfo } from '@/types/anime';
 
 export default function FavoritesScreen() {
   const { colors } = useThemeStore();
-  const { favorites } = useAnimeStore();
-  const [favoriteAnimes, setFavoriteAnimes] = useState<AnimeShort[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { favoritesData, removeFromFavorites } = useAnimeStore();
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadFavorites = async () => {
-    if (favorites.length === 0) {
-      setFavoriteAnimes([]);
-      setLoading(false);
-      return;
-    }
-
-    setError(null);
-
-    try {
-      const animeResults: AnimeShort[] = [];
-
-      for (const id of favorites) {
-        try {
-          const animeDetails = await fetchAnimeDetails(id);
-          if (animeDetails) {
-            animeResults.push(animeDetails);
-          }
-        } catch (err) {
-          console.error(`Ошибка при загрузке аниме с ID ${id}:`, err);
-        }
-      }
-
-      setFavoriteAnimes(animeResults);
-    } catch (err) {
-      setError('Ошибка при загрузке избранного');
-      console.error(err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  const handleRemoveFavorite = (animeId: number) => {
+    removeFromFavorites(animeId);
   };
-
-  useEffect(() => {
-    setLoading(true);
-    loadFavorites();
-  }, [favorites]);
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadFavorites();
+    setTimeout(() => setRefreshing(false), 500);
   };
 
-  const renderItem = ({ item }: { item: AnimeShort }) => (
+  const renderItem = ({ item }: { item: AnimeInfo }) => (
     <View style={styles.cardContainer}>
-      <AnimeCard anime={item} />
+      <AnimeCard 
+        anime={item} 
+        onRemoveFavorite={handleRemoveFavorite}
+      />
     </View>
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
-
-      {loading && !refreshing ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-        </View>
-      ) : error ? (
-        <View style={styles.centerContainer}>
-          <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
-        </View>
-      ) : favoriteAnimes.length === 0 ? (
+      {favoritesData.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={[styles.emptyText, { color: colors.subtext }]}>У вас пока нет избранных аниме</Text>
         </View>
       ) : (
         <FlatList
-          data={favoriteAnimes}
+          data={favoritesData}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
@@ -104,10 +60,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
   listContent: {
     paddingHorizontal: 8,
     paddingBottom: 16,
@@ -123,10 +75,6 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   emptyText: {
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  errorText: {
     fontSize: 16,
     textAlign: 'center',
   },

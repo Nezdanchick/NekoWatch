@@ -1,32 +1,61 @@
-import React from 'react';
-import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo, MISSING_POSTER_URL, canOpen } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeCardProps {
-  anime: AnimeShort;
+  anime: AnimeInfo;
   size?: 'small' | 'medium' | 'large';
+  onRemoveFavorite?: (animeId: number) => void;
 }
 
-export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
+export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: AnimeCardProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
   const { isFavorite, addToFavorites, removeFromFavorites } = useAnimeStore();
   const favorite = isFavorite(anime.id);
+  const [canAnim, setCanAnim] = useState(true);
+  const overlayAnim = useRef(new Animated.Value(0)).current;
+
+  const showOverlay = () => {
+    setCanAnim(false);
+    Animated.timing(overlayAnim, {
+      toValue: 1,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideOverlay = () => {
+    Animated.timing(overlayAnim, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start(() => setCanAnim(true));
+  };
 
   const handlePress = () => {
-    router.push(`/anime/${anime.id}`);
+    if (canOpen(anime)) {
+      router.push(`/anime/${anime.id}`);
+    } else if (canAnim) {
+      showOverlay();
+      setTimeout(hideOverlay, 1200);
+      return;
+    }
   };
 
   const toggleFavorite = (e: any) => {
     e.stopPropagation();
     if (favorite) {
       removeFromFavorites(anime.id);
+      if (onRemoveFavorite) {
+        onRemoveFavorite(anime.id);
+      }
     } else {
-      addToFavorites(anime.id);
+      addToFavorites(anime);
     }
   };
 
@@ -62,22 +91,31 @@ export default function AnimeCard({ anime, size = 'medium' }: AnimeCardProps) {
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: `https://shikimori.one${anime.image.original}` }}
+          source={{ uri: anime.poster ? anime.poster.mainUrl : MISSING_POSTER_URL }}
           style={[styles.image, sizeStyles.image]}
           resizeMode="cover"
         />
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.lockOverlay, { opacity: overlayAnim, backgroundColor: colors.background },
+          ]}
+        >
+          <Text style={[styles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
+          <Text style={[styles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
+        </Animated.View>
         <View style={[styles.metaContainer, { backgroundColor: colors.background }]}>
-          <Text style={[styles.meta, { color: colors.subtext }]}>
-            {anime.kind && anime.kind.toUpperCase()}
-          </Text>
-          {anime.aired_on && (
-            <Text style={[styles.aired_on, { color: colors.disabled }]}>
-              {anime.aired_on.substring(0, anime.aired_on.lastIndexOf('-'))}
+          {anime.kind && (
+            <Text style={[styles.meta, { color: colors.primary }]}>
+              {anime.kind && anime.kind.toUpperCase()}
             </Text>
           )}
-          {anime.score && (
-            <Text style={[styles.score, { color: colors.primary }]}>{anime.score}</Text>
+          {anime.airedOn.date && (
+            <Text style={[styles.date, { color: colors.subtext }]}>
+              {anime.airedOn.date.toString()}
+            </Text>
           )}
+          <Text style={[styles.score, { color: colors.primary }]}>{anime.score !== 0 ? anime.score.toString() : '-'}</Text>
         </View>
         <Pressable
           style={[styles.favoriteButton, { backgroundColor: colors.background }]}
@@ -120,11 +158,32 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 12,
     borderTopRightRadius: 12,
   },
+  lockOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 20,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
+  },
+  lockText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  lockTextSmall: {
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 4,
+  },
   favoriteButton: {
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
     padding: 6,
     zIndex: 10,
@@ -161,12 +220,13 @@ const styles = StyleSheet.create({
     fontSize: 11,
     flexShrink: 1,
   },
-  aired_on: {
+  date: {
     fontSize: 10,
     flexShrink: 1,
   },
   score: {
     fontSize: 12,
+    flexShrink: 1,
     fontWeight: '700',
   },
 });

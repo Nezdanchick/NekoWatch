@@ -1,18 +1,17 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import AnimeCard from './AnimeCard';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeListProps {
-  data: AnimeShort[];
+  data: AnimeInfo[];
   loading: boolean;
   error: string | null;
   onEndReached?: () => void;
   horizontal?: boolean;
   title?: string;
   cardSize?: 'small' | 'medium' | 'large';
-  emptyMessage?: string;
 }
 
 export default function AnimeList({
@@ -23,7 +22,6 @@ export default function AnimeList({
   horizontal = false,
   title,
   cardSize = 'medium',
-  emptyMessage = 'Нет данных для отображения'
 }: AnimeListProps) {
   const { colors } = useThemeStore();
 
@@ -44,11 +42,7 @@ export default function AnimeList({
   }
 
   if (data.length === 0 && !loading) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={[styles.emptyText, { color: colors.subtext }]}>{emptyMessage}</Text>
-      </View>
-    );
+    return null;
   }
 
   return (
@@ -57,7 +51,7 @@ export default function AnimeList({
         <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
       )}
       <FlatList
-        data={data}
+        data={data.filter(anime => canShow(anime))}
         renderItem={({ item }) => <AnimeCard anime={item} size={cardSize} />}
         keyExtractor={(item) => item.id.toString()}
         horizontal={horizontal}
@@ -100,8 +94,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginHorizontal: 16,
-    marginVertical: 12,
+    margin: 16,
   },
   footer: {
     padding: 16,

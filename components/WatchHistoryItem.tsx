@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable, Image } from 'react-native';
+import { StyleSheet, Text, View, Image, Platform, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
 import { WatchHistoryItem as WatchHistoryItemType } from '@/types/anime';
@@ -18,17 +18,23 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
 
   React.useEffect(() => {
     const fetchLink = async () => {
-      const result = await searchKodikByShikimoriId(item.animeId);
-      setLink(result[0].link);
+      try {
+        const result = await searchKodikByShikimoriId(item.animeId);
+        setLink(result[0]?.link || null);
+      } catch (error) {
+        console.error('Error fetching link:', error);
+      }
     };
     fetchLink();
   }, [item.animeId]);
 
-  const handlePress = () => {
+  const handleAnimeInfo = () => {
     router.push(`/anime/${item.animeId}`);
   };
 
   const handleContinueWatching = () => {
+    if (!link) return;
+    
     router.push({
       pathname: '/player/[id]',
       params: {
@@ -38,7 +44,6 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
     });
   };
 
-  // Format date
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleDateString('ru-RU', {
@@ -48,23 +53,34 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
   };
 
   return (
-    <Pressable style={[styles.container, { backgroundColor: colors.card }]} onPress={handlePress}>
-      <Image
-        source={{ uri: item.image }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-      <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
-        <Text style={[styles.date, { color: colors.subtext }]}>{formatDate(item.lastWatched)}</Text>
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
+      <TouchableOpacity 
+        style={styles.mainPressable}
+        onPress={handleAnimeInfo}
+        activeOpacity={0.7}
+      >
+        <Image
+          source={{ uri: item.image }}
+          style={styles.image}
+          resizeMode="cover"
+        />
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.date, { color: colors.subtext }]}>{formatDate(item.lastWatched)}</Text>
+        </View>
+      </TouchableOpacity>
 
-      {continueWatchingShow ? (
-        <Pressable style={[styles.playButton, { backgroundColor: colors.primary }]} onPress={handleContinueWatching}>
+      {continueWatchingShow && (
+        <TouchableOpacity 
+          style={[styles.playButton, { backgroundColor: colors.primary }]} 
+          onPress={handleContinueWatching}
+          activeOpacity={0.7}
+          disabled={!link}
+        >
           <FontAwesome name="play" size={20} color={colors.text} />
-        </Pressable>
-      ) : null}
-    </Pressable>
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
 
@@ -75,6 +91,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 12,
     overflow: 'hidden',
+    elevation: 2,
+    minHeight: 80,
+  },
+  mainPressable: {
+    flex: 1,
+    flexDirection: 'row',
   },
   image: {
     width: 80,
@@ -97,5 +119,13 @@ const styles = StyleSheet.create({
     width: 50,
     justifyContent: 'center',
     alignItems: 'center',
+    ...Platform.select({
+      android: {
+        elevation: 3,
+      },
+      ios: {
+        zIndex: 1,
+      },
+    }),
   },
 });

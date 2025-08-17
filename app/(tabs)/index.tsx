@@ -1,26 +1,34 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
+import { StyleSheet, Text, View, RefreshControl, Animated, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
-import { AnimeShort } from '@/types/anime';
+import { AnimeInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
+import * as ScreenOrientation from 'expo-screen-orientation';
 
-const animeCount = 15;
+const animeCount = 25;
+const CACHE_KEYS = {
+  popular: 'home_popularAnime',
+  latest: 'home_latestAnime',
+  ongoing: 'home_ongoingAnime',
+  anons: 'home_anonsAnime',
+};
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
 
 export default function HomeScreen() {
   const { colors } = useThemeStore();
-  const [popularAnime, setPopularAnime] = useState<AnimeShort[]>([]);
-  const [latestAnime, setLatestAnime] = useState<AnimeShort[]>([]);
-  const [ongoingAnime, setOngoingAnime] = useState<AnimeShort[]>([]);
-  const [anonsAnime, setAnonsAnime] = useState<AnimeShort[]>([]);
-  const [loading, setLoading] = useState({
-    popular: true,
-    new: true,
-    updates: true,
-  });
+  const [popularAnime, setPopularAnime] = useState<AnimeInfo[]>([]);
+  const [latestAnime, setLatestAnime] = useState<AnimeInfo[]>([]);
+  const [ongoingAnime, setOngoingAnime] = useState<AnimeInfo[]>([]);
+  const [anonsAnime, setAnonsAnime] = useState<AnimeInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -31,55 +39,97 @@ export default function HomeScreen() {
 
   const animationValue = useRef(new Animated.Value(1)).current;
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(prev => ({ ...prev, popular: true }));
-      const popular = await fetchAnimeList(1, animeCount, 'popularity');
-      if (popular && popular.length > 0) {
-        setPopularAnime(popular);
-      }
-      setLoading(prev => ({ ...prev, popular: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const latest = await fetchAnimeList(1, animeCount, 'ranked_shiki', undefined, 'latest');
-      if (latest && latest.length > 0) {
-        setLatestAnime(latest);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const ongoing = await fetchAnimeList(1, animeCount, 'ranked', undefined, 'ongoing');
-      if (ongoing && ongoing.length > 0) {
-        setOngoingAnime(ongoing);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      setLoading(prev => ({ ...prev, new: true }));
-      const anons = await fetchAnimeList(1, animeCount, 'aired_on', undefined, 'anons');
-      if (anons && anons.length > 0) {
-        setAnonsAnime(anons);
-      }
-      setLoading(prev => ({ ...prev, new: false }));
-
-      setLoading(prev => ({ ...prev, updates: true }));
-      setLoading(prev => ({ ...prev, updates: false }));
-    } catch (err) {
-      setError('Ошибка при загрузке данных');
-      console.error(err);
-    } finally {
-      setLoading({
-        popular: false,
-        new: false,
-        updates: false,
-      });
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     }
   }, []);
+
+  const getCachedData = async <T,>(key: string): Promise<CacheEntry<T> | null> => {
+    try {
+      const cached = await AsyncStorage.getItem(key);
+      if (cached) {
+        return JSON.parse(cached);
+      }
+      return null;
+    } catch (err) {
+      console.error(`Error reading cache for ${key}:`, err);
+      return null;
+    }
+  };
+
+  const setCachedData = async <T,>(key: string, data: T): Promise<void> => {
+    try {
+      const cacheEntry: CacheEntry<T> = {
+        data,
+        timestamp: Date.now(),
+      };
+      await AsyncStorage.setItem(key, JSON.stringify(cacheEntry));
+    } catch (err) {
+      console.error(`Error writing cache for ${key}:`, err);
+    }
+  };
+
+  const clearHomeCache = async () => {
+    try {
+      await Promise.all(
+        Object.values(CACHE_KEYS).map((key) => AsyncStorage.removeItem(key))
+      );
+    } catch (err) {
+      console.error('Error clearing home cache:', err);
+    }
+  };
+
+  const loadAnimeData = useCallback(
+    async (
+      cacheKey: string,
+      setData: (data: AnimeInfo[]) => void,
+      fetchParams: Parameters<typeof fetchAnimeList>
+    ) => {
+      const cached = await getCachedData<AnimeInfo[]>(cacheKey);
+
+      if (cached?.data) {
+        setData(cached.data);
+      }
+
+      if (!cached) {
+        try {
+          const freshData = await fetchAnimeList(...fetchParams);
+          if (freshData && freshData.length > 0) {
+            setData(freshData);
+            await setCachedData(cacheKey, freshData);
+          }
+        } catch (err) {
+          if (!cached) {
+            setError('Ошибка при загрузке данных');
+          }
+          console.error(`Error fetching ${cacheKey}:`, err);
+        }
+      }
+    },
+    []
+  );
+
+  const loadData = useCallback(async () => {
+    await Promise.all([
+      loadAnimeData(CACHE_KEYS.popular, setPopularAnime, [1, animeCount, 'popularity']),
+      loadAnimeData(
+        CACHE_KEYS.latest,
+        setLatestAnime,
+        [1, animeCount, 'ranked_shiki', undefined, 'latest']
+      ),
+      loadAnimeData(
+        CACHE_KEYS.ongoing,
+        setOngoingAnime,
+        [1, animeCount, 'ranked', undefined, 'ongoing']
+      ),
+      loadAnimeData(
+        CACHE_KEYS.anons,
+        setAnonsAnime,
+        [1, animeCount, 'aired_on', undefined, 'anons']
+      ),
+    ]);
+  }, [loadAnimeData]);
 
   useEffect(() => {
     loadData();
@@ -88,13 +138,14 @@ export default function HomeScreen() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setError(null);
+    await clearHomeCache();
     await loadData();
     setRefreshing(false);
   }, [loadData]);
 
   const handleScrollBeginDrag = () => {
     Animated.timing(animationValue, {
-      toValue: 0, // Скрыть
+      toValue: 0,
       duration: 200,
       useNativeDriver: true,
     }).start();
@@ -102,7 +153,7 @@ export default function HomeScreen() {
 
   const handleScrollEndDrag = () => {
     Animated.timing(animationValue, {
-      toValue: 1, // Показать
+      toValue: 1,
       duration: 500,
       useNativeDriver: true,
     }).start();
@@ -110,7 +161,7 @@ export default function HomeScreen() {
 
   const translateY = animationValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [100, 0], // Скрыть вниз, вернуть на место
+    outputRange: [100, 0],
   });
 
   const opacity = animationValue;
@@ -120,13 +171,11 @@ export default function HomeScreen() {
       <Animated.ScrollView
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {error && (
           <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-            <Text style={[styles.container, { color: colors.secondary }]}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
           </View>
         )}
 
@@ -134,7 +183,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Популярное аниме"
             data={popularAnime}
-            loading={loading.popular}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -145,7 +194,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Последние релизы"
             data={latestAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -156,7 +205,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Онгоинги"
             data={ongoingAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -167,7 +216,7 @@ export default function HomeScreen() {
           <AnimeList
             title="Анонсы"
             data={anonsAnime}
-            loading={loading.new}
+            loading={false}
             error={error}
             horizontal={true}
             cardSize="medium"
@@ -179,15 +228,9 @@ export default function HomeScreen() {
 
       {recentHistory.length > 0 && (
         <Animated.View
-          style={[
-            styles.watchHistoryContainer,
-            { transform: [{ translateY }], opacity },
-          ]}
+          style={[styles.watchHistoryContainer, { transform: [{ translateY }], opacity }]}
         >
-          <SwipableHistoryItem
-            key={`${recentHistory[0].animeId}`}
-            item={recentHistory[0]}
-          />
+          <SwipableHistoryItem key={`${recentHistory[0].animeId}`} item={recentHistory[0]} />
         </Animated.View>
       )}
     </SafeAreaView>
@@ -199,7 +242,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    marginVertical: 8,
+    marginBottom: 8,
   },
   errorContainer: {
     padding: 16,

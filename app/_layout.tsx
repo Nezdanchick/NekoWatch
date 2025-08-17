@@ -1,12 +1,9 @@
+import React, { useEffect } from 'react';
+import { SplashScreen, Stack } from "expo-router";
+import { ErrorBoundary } from "./error-boundary";
+import { useThemeStore } from '@/store/theme-store';
 import { FontAwesome } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import { StatusBar } from "react-native";
-import { ErrorBoundary } from "./error-boundary";
-import * as SystemUI from "expo-system-ui"
-import { useThemeStore } from '@/store/theme-store';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -15,62 +12,42 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { colors } = useThemeStore();
-
-  const [loaded, error] = useFonts({
-    ...FontAwesome.font,
-  });
-
-  SystemUI.setBackgroundColorAsync(colors.background);
+  const [fontsLoaded, fontError] = useFonts({ ...FontAwesome.font });
 
   useEffect(() => {
-    if (error) {
-      console.error(error);
-      throw error;
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
+    if (fontError)
+        throw fontError;
+    if (fontsLoaded)
       SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  }, [fontError, fontsLoaded]);
 
   return (
     <ErrorBoundary>
-      <StatusBar backgroundColor='#00000000' />
       <RootLayoutNav />
     </ErrorBoundary>
   );
 }
 
 function RootLayoutNav() {
-  const { colors } = useThemeStore();
+  const colors = useThemeStore(state => state.colors);
+
+  const screenOptions = React.useMemo(() => ({
+    headerStyle: { backgroundColor: colors.background },
+    headerTintColor: colors.text,
+    headerTitleStyle: { fontWeight: 'bold' as const },
+    contentStyle: {
+      backgroundColor: colors.background,
+      elevation: 0,
+      shadowOpacity: 0,
+    },
+    statusBarStyle: colors.statusBar,
+    statusBarBackgroundColor: colors.background,
+    statusBarHidden: false,
+    navigationBarHidden: true,
+  }), [colors]);
 
   return (
-    <Stack
-      screenOptions={{
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-        headerTintColor: colors.text,
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        contentStyle: {
-          backgroundColor: colors.background,
-          elevation: 0,
-          shadowOpacity: 0,
-        },
-        statusBarStyle: colors.statusBar,
-        statusBarHidden: false,
-        navigationBarHidden: true,
-      }}
-    >
+    <Stack screenOptions={screenOptions}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
         name="anime/[id]"

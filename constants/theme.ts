@@ -49,7 +49,7 @@ const amoled: Theme = {
   tabBar: '#000000',
   tabIcon: '#6E6E6E',
   statusBar: 'light',
-  disabled: '#333333',
+  disabled: '#444444',
 };
 export const theme = {
   dark: dark,

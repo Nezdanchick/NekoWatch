@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AnimeDetailed, AnimeShort, WatchHistoryItem } from '@/types/anime';
+import { AnimeInfo, WatchHistoryItem } from '@/types/anime';
 
 interface AnimeState {
   favorites: number[];
+  favoritesData: AnimeInfo[]; // Добавляем кеш данных
   watchHistory: WatchHistoryItem[];
-  
-  addToFavorites: (animeId: number) => void;
+
+  addToFavorites: (anime: AnimeInfo) => void; // Теперь принимаем объект аниме
   removeFromFavorites: (animeId: number) => void;
   isFavorite: (animeId: number) => boolean;
-  
-  addToWatchHistory: (animeId: number,  title: string, image: string) => void;
-  
+
+  addToWatchHistory: (animeId: number, title: string, image: string) => void;
   clearWatchHistory: () => void;
 }
 
@@ -20,23 +20,28 @@ export const useAnimeStore = create<AnimeState>()(
   persist(
     (set, get) => ({
       favorites: [],
+      favoritesData: [],
       watchHistory: [],
-      recentlyViewed: [],
-      
-      addToFavorites: (animeId: number) => 
+
+      addToFavorites: (anime: AnimeInfo) =>
         set((state) => ({
-          favorites: [...state.favorites, animeId]
+          favorites: [...new Set([...state.favorites, anime.id])],
+          favoritesData: [...state.favoritesData, anime].filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.id === item.id)
+          )
         })),
-        
-      removeFromFavorites: (animeId: number) => 
+
+      removeFromFavorites: (animeId: number) =>
         set((state) => ({
-          favorites: state.favorites.filter(id => id !== animeId)
+          favorites: state.favorites.filter(id => id !== animeId),
+          favoritesData: state.favoritesData.filter(item => item.id !== animeId)
         })),
-        
-      isFavorite: (animeId: number) => 
+
+      isFavorite: (animeId: number) =>
         get().favorites.includes(animeId),
-        
-      addToWatchHistory: (animeId: number,  title: string, image: string) => 
+
+      addToWatchHistory: (animeId: number, title: string, image: string) =>
         set((state) => {
           const item: WatchHistoryItem = {
             animeId,
@@ -45,33 +50,15 @@ export const useAnimeStore = create<AnimeState>()(
             lastWatched: Date.now()
           };
           const filteredHistory = state.watchHistory.filter(
-            h => !(h.animeId === item.animeId)
+            h => h.animeId !== item.animeId
           );
-          
+
           return {
-            watchHistory: [item, ...filteredHistory].slice(0, 100) // Limit history to 100 items
+            watchHistory: [item, ...filteredHistory].slice(0, 100)
           };
         }),
-        
-      updateWatchProgress: (animeId: number) => 
-        set((state) => {
-          const existingItemIndex = state.watchHistory.findIndex(
-            item => item.animeId === animeId
-          );
-          
-          if (existingItemIndex >= 0) {
-            const updatedHistory = [...state.watchHistory];
-            updatedHistory[existingItemIndex] = {
-              ...updatedHistory[existingItemIndex],
-              lastWatched: Date.now()
-            };
-            return { watchHistory: updatedHistory };
-          }
-          
-          return state;
-        }),
-        
-      clearWatchHistory: () => set((state) => ({ ...state, watchHistory: [] })),
+
+      clearWatchHistory: () => set({ watchHistory: [] }),
     }),
     {
       name: 'anime-storage',

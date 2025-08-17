@@ -1,96 +1,94 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
 import { useThemeStore } from '@/store/theme-store';
-import { themeMap } from '@/constants/theme';
+import { themeMap, ThemeName } from '@/constants/theme';
 
-interface ThemeSelectorProps { }
+const themeNames: ThemeName[] = ['dark', 'light', 'amoled'];
 
-const ThemeSelecor: React.FC<ThemeSelectorProps> = ({
-}) => {
+const ThemeSelector: React.FC = () => {
   const { colors, themeName, toggleTheme } = useThemeStore();
   const sliderPosition = useRef(new Animated.Value(0)).current;
-  const [containerWidth, setContainerWidth] = useState(0);
+  const [width, setWidth] = useState(0);
+
+  const optionWidth = width > 0 ? width / themeNames.length : 0;
+
+  const handlePress = (name: ThemeName) => {
+    if (name !== themeName) {
+      toggleTheme(name);
+    }
+  };
 
   useEffect(() => {
-    const position = themeMap[themeName];
+    if (!optionWidth) return;
     Animated.timing(sliderPosition, {
-      toValue: position * (containerWidth / 3),
-      duration: 300,
+      toValue: (themeMap[themeName] ?? 0) * optionWidth,
+      duration: 200,
       useNativeDriver: true,
     }).start();
-  }, [themeName, containerWidth]);
-
-  const handleLayout = (event: any) => {
-    const { width } = event.nativeEvent.layout;
-    setContainerWidth(width);
-  };
+  }, [themeName, optionWidth]);
 
   return (
     <View
-      style={[styles.themeSelector, { backgroundColor: colors.card }]}
-      onLayout={handleLayout}
+      style={[styles.container, { backgroundColor: colors.card }]}
+      onLayout={e => setWidth(e.nativeEvent.layout.width)}
     >
-      <Animated.View
-        style={[
-          styles.slider,
-          {
-            backgroundColor: colors.disabled,
-            transform: [{ translateX: sliderPosition }],
-          },
-        ]}
-      />
-      <Pressable
-        style={[styles.themeOption, { width: '33.33%' }]}
-        onPress={() => toggleTheme('dark')}
-      >
-        <Text style={[styles.themeOptionText, { color: colors.text }]}>
-          Тёмная
-        </Text>
-      </Pressable>
-      <Pressable
-        style={[styles.themeOption, { width: '33.33%' }]}
-        onPress={() => toggleTheme('light')}
-      >
-        <Text style={[styles.themeOptionText, { color: colors.text }]}>
-          Светлая
-        </Text>
-      </Pressable>
-      <Pressable
-        style={[styles.themeOption, { width: '33.33%' }]}
-        onPress={() => toggleTheme('amoled')}
-      >
-        <Text style={[styles.themeOptionText, { color: colors.text }]}>
-          Amoled
-        </Text>
-      </Pressable>
+      {optionWidth > 0 && (
+        <Animated.View
+          style={[
+            styles.slider,
+            {
+              backgroundColor: colors.disabled,
+              width: optionWidth,
+              transform: [{ translateX: sliderPosition }],
+            },
+          ]}
+        />
+      )}
+      {themeNames.map(name => (
+        <Pressable
+          key={name}
+          style={[styles.option, { width: optionWidth }]}
+          onPress={() => handlePress(name)}
+        >
+          <Text style={[
+            styles.text,
+            { color: colors.text, fontWeight: themeName === name ? 'bold' : '600' }
+          ]}>
+            {name === 'dark' ? 'Тёмная' : name === 'light' ? 'Светлая' : 'Amoled'}
+          </Text>
+        </Pressable>
+      ))}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  themeSelector: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    position: 'relative',
     height: 60,
+    borderRadius: 8,
     overflow: 'hidden',
+    position: 'relative',
   },
   slider: {
     position: 'absolute',
-    width: '33.33%',
+    left: 0,
+    top: 0,
     height: '100%',
     borderRadius: 8,
+    zIndex: 0,
   },
-  themeOption: {
-    flex: 1,
+  option: {
     alignItems: 'center',
     justifyContent: 'center',
+    height: '100%',
+    zIndex: 1,
   },
-  themeOptionText: {
+  text: {
     fontSize: 16,
     fontWeight: '600',
   },
 });
 
-export default ThemeSelecor;
+export default ThemeSelector;

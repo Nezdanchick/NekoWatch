@@ -11,8 +11,8 @@ import { TimeSpentSection } from '@/components/TimeSpentSection';
 import ThemeSelector from '@/components/ThemeSelector';
 
 export default function ProfileScreen() {
-  const { colors } = useThemeStore();
-  const { watchHistory } = useAnimeStore();
+  const colors = useThemeStore(state => state.colors);
+  const watchHistory = useAnimeStore(state => state.watchHistory);
   const router = useRouter();
 
   const handleNezdanchickPress = () => {
@@ -64,7 +64,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Ваша активность</Text>
 
-          <TimeSpentSection/>
+          <TimeSpentSection />
 
           {renderMenuItem(
             <MaterialCommunityIcons name="history" size={24} color={colors.primary} />,
