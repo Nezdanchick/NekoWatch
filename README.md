@@ -1,4 +1,5 @@
-<span style="display:block;text-align:center">![alt text](./assets/images/title.png)</span>
+<span style="display:block;text-align:center">![logo](./assets/images/title.png)</span>
+<span style="display:block;text-align:center">[![telegram](https://img.shields.io/badge/Nezdanchick-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/nezdanchickchannel)</span>
 
 Приложение для просмотра аниме, разработанное на React Native, позволяет пользователям удобно просматривать любимые тайты с мобильных устройств. Оно предлагает интуитивно понятный интерфейс, быструю загрузку контента и возможность выбора субтитров или дубляжа.
 
@@ -23,7 +24,6 @@
 1) Скачать
 2) Установить 
 3) Пользоваться
-
 
 ## TODO
 - [x] Добавление списка просмотренных аниме
