@@ -25,12 +25,13 @@ export default function AnimeDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isTranslationsVisible, setTranslationsVisible] = useState(false);
   const [animeDescription, setAnimeDescription] = useState<string | null>(null);
+  const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
+  const [favorite, setFavorite] = useState(false);
+  const [isTitleExpanded, setTitleExpanded] = useState(false); // Переместите сюда
   const animationHeight = useRef(new Animated.Value(0)).current;
   const animationInProgress = useRef(false);
-  const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
 
   const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
-  const [favorite, setFavorite] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
 
@@ -170,6 +171,10 @@ export default function AnimeDetailsScreen() {
     setFavorite(!favorite);
   }
 
+  const toggleTitleExpansion = () => {
+    setTitleExpanded(!isTitleExpanded);
+  };
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { backgroundColor: colors.card }]}>
@@ -217,8 +222,18 @@ export default function AnimeDetailsScreen() {
       </View>
 
       <View style={styles.titleContainer}>
-        <Text style={[styles.title, {color: colors.text}]}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
-        <Text style={[styles.originalTitle, {color: colors.subtext}]}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
+        <Pressable onPress={toggleTitleExpansion}>
+          <Text
+            style={[styles.title, { color: colors.text }]}
+            numberOfLines={isTitleExpanded ? undefined : 2} // Показывает одну строку или весь текст
+            ellipsizeMode="tail" // Добавляет многоточие, если текст обрезан
+          >
+            {anime?.russian || anime?.name || 'Название отсутствует'}
+          </Text>
+        </Pressable>
+        <Text style={[styles.originalTitle, { color: colors.subtext }]}>
+          {anime?.name || 'Оригинальное название отсутствует'}
+        </Text>
       </View>
 
       <View style={styles.actions}>
@@ -438,5 +453,10 @@ const styles = StyleSheet.create({
   },
   inactiveIndicator: {
     backgroundColor: theme.default.subtext,
+  },
+  expandButton: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 4,
   },
 });
