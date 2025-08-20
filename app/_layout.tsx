@@ -64,12 +64,19 @@ function RootLayoutNav() {
           animation: 'fade',
           presentation: 'fullScreenModal',
         }}
-      />
+       />
       <Stack.Screen
         name="history/history"
         options={{
           animation: 'slide_from_right',
         }}
+      />
+      <Stack.Screen
+        name="full-anime-list"
+        options={({ route }) => ({
+          title: "Список аниме", 
+          animation: 'slide_from_right',
+        })}
       />
     </Stack>
   );

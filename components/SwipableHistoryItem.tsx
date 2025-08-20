@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Animated, StyleSheet, View, Dimensions, PanResponder } from 'react-native';
+import { Animated, StyleSheet, View, Dimensions, PanResponder, GestureResponderEvent } from 'react-native';
 import WatchHistoryItem, { WatchHistoryItemProps } from '@/components/WatchHistoryItem';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -7,26 +7,40 @@ const { width: screenWidth } = Dimensions.get('window');
 const SwipeableHistoryItem: React.FC<WatchHistoryItemProps> = ({ item }) => {
   const [isRemoved, setIsRemoved] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
+  const isSwiping = useRef(false);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, gestureState) => {
-        translateX.setValue(gestureState.dx);
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Начинаем обрабатывать свайп только при значительном смещении
+        const isHorizontalSwipe = Math.abs(gestureState.dx) > 5 && Math.abs(gestureState.dy) < 10;
+        if (isHorizontalSwipe) {
+          isSwiping.current = true;
+        }
+        return isHorizontalSwipe;
       },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx < -50) {
-          triggerHideAnimation('left');
-        } else if (gestureState.dx > 50) {
-          triggerHideAnimation('right');
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
+      onPanResponderMove: (_, gestureState) => {
+        if (isSwiping.current) {
+          translateX.setValue(gestureState.dx);
         }
       },
+      onPanResponderRelease: (_, gestureState) => {
+        if (isSwiping.current) {
+          if (gestureState.dx < -50) {
+            triggerHideAnimation('left');
+          } else if (gestureState.dx > 50) {
+            triggerHideAnimation('right');
+          } else {
+            Animated.spring(translateX, {
+              toValue: 0,
+              useNativeDriver: true,
+            }).start();
+          }
+          isSwiping.current = false;
+        }
+      },
+      onPanResponderTerminationRequest: () => false,
     })
   ).current;
 

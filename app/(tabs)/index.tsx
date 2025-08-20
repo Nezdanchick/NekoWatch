@@ -34,7 +34,6 @@ export default function HomeScreen() {
 
   const { watchHistory } = useAnimeStore();
   const recentHistory = watchHistory
-    .sort((a, b) => b.lastWatched - a.lastWatched)
     .slice(0, 5);
 
   const animationValue = useRef(new Animated.Value(1)).current;
@@ -172,6 +171,7 @@ export default function HomeScreen() {
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={{ paddingTop: 8 }} // Отступ в начале страницы
       >
         {error && (
           <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
@@ -179,48 +179,17 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={styles.section}>
-          <AnimeList
-            title="Популярное аниме"
-            data={popularAnime}
-            loading={false}
-            error={error}
-            horizontal={true}
-            cardSize="medium"
-          />
+        <View style={[styles.section, {marginTop: '4%'}]}>
+          <AnimeList type="popular" title="Популярное аниме" horizontal={true} cardSize="medium" limit={25} />
         </View>
-
-        <View style={styles.section}>
-          <AnimeList
-            title="Последние релизы"
-            data={latestAnime}
-            loading={false}
-            error={error}
-            horizontal={true}
-            cardSize="medium"
-          />
+        <View style={[styles.section]}>
+          <AnimeList type="latest" title="Последние релизы" horizontal={true} cardSize="medium" limit={25} />
         </View>
-
-        <View style={styles.section}>
-          <AnimeList
-            title="Онгоинги"
-            data={ongoingAnime}
-            loading={false}
-            error={error}
-            horizontal={true}
-            cardSize="medium"
-          />
+        <View style={[styles.section]}>
+          <AnimeList type="ongoing" title="Онгоинги" horizontal={true} cardSize="medium" limit={25} />
         </View>
-
-        <View style={styles.section}>
-          <AnimeList
-            title="Анонсы"
-            data={anonsAnime}
-            loading={false}
-            error={error}
-            horizontal={true}
-            cardSize="medium"
-          />
+        <View style={[styles.section]}>
+          <AnimeList type="anons" title="Анонсы" horizontal={true} cardSize="medium" limit={25} />
         </View>
 
         <View style={styles.footer} />

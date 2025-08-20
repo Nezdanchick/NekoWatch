@@ -84,27 +84,33 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
 
   const sizeStyles = getCardSize();
 
+  
   return (
     <Pressable
-      style={[styles.container, sizeStyles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, sizeStyles.container, { backgroundColor: colors.card }]}
       onPress={handlePress}
     >
       <View style={styles.imageContainer}>
-        <Image
+        <Animated.Image
           source={{ uri: anime.poster ? anime.poster.mainUrl : MISSING_POSTER_URL }}
-          style={[styles.image, sizeStyles.image]}
+          style={[
+            styles.image,
+            sizeStyles.image,
+            { opacity: overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) },
+          ]}
           resizeMode="cover"
         />
         <Animated.View
           pointerEvents="none"
           style={[
-            styles.lockOverlay, { opacity: overlayAnim, backgroundColor: colors.background },
+            styles.lockOverlay,
+            { opacity: overlayAnim, backgroundColor: colors.card },
           ]}
         >
           <Text style={[styles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
           <Text style={[styles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
         </Animated.View>
-        <View style={[styles.metaContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.metaContainer, { backgroundColor: colors.card }]}>
           {anime.kind && (
             <Text style={[styles.meta, { color: colors.primary }]}>
               {anime.kind && anime.kind.toUpperCase()}
@@ -115,7 +121,9 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
               {anime.airedOn.date.toString()}
             </Text>
           )}
-          <Text style={[styles.score, { color: colors.primary }]}>{anime.score !== 0 ? anime.score.toString() : '-'}</Text>
+          <Text style={[styles.score, { color: colors.primary }]}>
+            {anime.score !== 0 ? anime.score.toString() : '-'}
+          </Text>
         </View>
         <Pressable
           style={[styles.favoriteButton, { backgroundColor: colors.background }]}
@@ -130,7 +138,15 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
         </Pressable>
       </View>
       <View style={styles.infoContainer}>
-        <Text style={[styles.title, sizeStyles.title, { color: colors.text }]} numberOfLines={2} ellipsizeMode="tail">
+        <Text
+          style={[
+            styles.title,
+            sizeStyles.title,
+            { color: colors.text },
+          ]}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {anime.russian || anime.name || 'Без названия'}
         </Text>
       </View>
@@ -151,12 +167,11 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
+    overflow: 'hidden',
   },
   image: {
     width: '100%',
     height: 180,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
   },
   lockOverlay: {
     position: 'absolute',
@@ -167,8 +182,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 20,
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    width: '100%', // Убедитесь, что ширина и высота указаны
+    height: '100%',
   },
   lockText: {
     fontSize: 24,

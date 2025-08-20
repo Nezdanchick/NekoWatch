@@ -1,33 +1,69 @@
-import React from 'react';
-import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import AnimeCard from './AnimeCard';
 import { AnimeInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
+import { fetchAnimeList } from '@/services/shikimori-api';
 
 interface AnimeListProps {
-  data: AnimeInfo[];
-  loading: boolean;
-  error: string | null;
-  onEndReached?: () => void;
-  horizontal?: boolean;
+  type: 'popular' | 'latest' | 'ongoing' | 'anons'; // Тип аниме
   title?: string;
+  horizontal?: boolean;
   cardSize?: 'small' | 'medium' | 'large';
+  limit?: number; // Лимит отображаемых аниме
 }
 
 export default function AnimeList({
-  data,
-  loading,
-  error,
-  onEndReached,
-  horizontal = false,
+  type,
   title,
+  horizontal = false,
   cardSize = 'medium',
+  limit = 25, // По умолчанию 25
 }: AnimeListProps) {
   const { colors } = useThemeStore();
+  const router = useRouter();
+
+  const [data, setData] = useState<AnimeInfo[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadAnimeData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const fetchParams = {
+        popular: [1, limit, 'popularity'],
+        latest: [1, limit, 'ranked_shiki', undefined, 'latest'],
+        ongoing: [1, limit, 'ranked', undefined, 'ongoing'],
+        anons: [1, limit, 'aired_on', undefined, 'anons'],
+      }[type] as Parameters<typeof fetchAnimeList>;
+
+      const freshData = await fetchAnimeList(...fetchParams);
+      setData(freshData || []);
+    } catch (err) {
+      setError('Ошибка при загрузке данных');
+      console.error(`Error fetching ${type} anime:`, err);
+    } finally {
+      setLoading(false);
+    }
+  }, [type, limit]);
+
+  useEffect(() => {
+    loadAnimeData();
+  }, [loadAnimeData]);
+
+  const handleViewAll = () => {
+    router.push({
+      pathname: '/full-anime-list',
+      params: { title, type },
+    });
+  };
 
   if (error) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorText, { color: colors.secondary }]}>Ошибка: {error}</Text>
       </View>
     );
@@ -35,7 +71,7 @@ export default function AnimeList({
 
   if (loading && data.length === 0) {
     return (
-      <View style={styles.centerContainer}>
+      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -46,9 +82,15 @@ export default function AnimeList({
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {title && (
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+          <TouchableOpacity onPress={handleViewAll} style={styles.viewAllContainer}>
+            <Text style={[styles.viewAllText, { color: colors.primary }]}>Все</Text>
+            <Text style={[styles.arrowText, { color: colors.primary }]}>→</Text>
+          </TouchableOpacity>
+        </View>
       )}
       <FlatList
         data={data.filter(anime => canShow(anime))}
@@ -57,18 +99,9 @@ export default function AnimeList({
         horizontal={horizontal}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        onEndReached={onEndReached}
-        onEndReachedThreshold={0.5}
         contentContainerStyle={horizontal ? styles.horizontalList : styles.gridList}
-        numColumns={horizontal ? 1 : 2}
+        numColumns={horizontal ? 1 : 2} // Две карточки в ряд
         key={horizontal ? 'horizontal' : 'grid'}
-        ListFooterComponent={
-          loading && data.length > 0 ? (
-            <View style={styles.footer}>
-              <ActivityIndicator color={colors.primary} />
-            </View>
-          ) : null
-        }
       />
     </View>
   );
@@ -91,21 +124,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     alignItems: 'center',
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    margin: 16,
   },
-  footer: {
-    padding: 16,
-    justifyContent: 'center',
+  viewAllContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  errorText: {
-    textAlign: 'center',
-    fontSize: 16,
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: 'bold',
   },
-  emptyText: {
+  arrowText: {
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  errorText: {
     textAlign: 'center',
     fontSize: 16,
   },

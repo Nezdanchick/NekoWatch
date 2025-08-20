@@ -217,8 +217,8 @@ export default function AnimeDetailsScreen() {
       </View>
 
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
-        <Text style={styles.originalTitle}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
+        <Text style={[styles.title, {color: colors.text}]}>{anime?.russian || anime?.name || 'Название отсутствует'}</Text>
+        <Text style={[styles.originalTitle, {color: colors.subtext}]}>{anime?.name || 'Оригинальное название отсутствует'}</Text>
       </View>
 
       <View style={styles.actions}>
@@ -356,11 +356,9 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: theme.default.text,
   },
   originalTitle: {
     fontSize: 14,
-    color: theme.default.primary,
   },
   actions: {
     flexDirection: 'column',
