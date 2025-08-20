@@ -6,12 +6,12 @@
 ## Скриншоты
 <table>
   <tr style="display: flex; flex-wrap: wrap; justify-content: center;">
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_1_2025-08-17_22-02-29.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_2_2025-08-17_22-02-29.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_3_2025-08-17_22-02-29.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_4_2025-08-17_22-02-29.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_5_2025-08-17_22-02-29.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/assets/images/photo_6_2025-08-17_22-02-29.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/1.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/2.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/3.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/4.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/5.jpg" width="250"></td>
+    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/6.jpg" width="250"></td>
   </tr>
 </table>
 
