@@ -93,7 +93,7 @@ export default function ProfileScreen() {
           {renderMenuItem(
             <GithubIcon size={24} color={colors.primary} />,
             "W1neus",
-            "Менеджер",
+            "UI/UX дизайнер",
             handleWineusPress
           )}
           {renderMenuItem(

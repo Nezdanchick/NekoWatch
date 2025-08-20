@@ -225,8 +225,8 @@ export default function AnimeDetailsScreen() {
         <Pressable onPress={toggleTitleExpansion}>
           <Text
             style={[styles.title, { color: colors.text }]}
-            numberOfLines={isTitleExpanded ? undefined : 2} // Показывает одну строку или весь текст
-            ellipsizeMode="tail" // Добавляет многоточие, если текст обрезан
+            numberOfLines={isTitleExpanded ? undefined : 2}
+            ellipsizeMode="tail"
           >
             {anime?.russian || anime?.name || 'Название отсутствует'}
           </Text>
@@ -234,6 +234,28 @@ export default function AnimeDetailsScreen() {
         <Text style={[styles.originalTitle, { color: colors.subtext }]}>
           {anime?.name || 'Оригинальное название отсутствует'}
         </Text>
+      </View>
+
+      {/* Новая плашка с информацией */}
+      <View style={[styles.infoBadge, { backgroundColor: colors.card }]}>
+        <View style={styles.infoItem}>
+          <MaterialCommunityIcons name="tag" size={16} color={colors.text} />
+          <Text style={[styles.infoText, { color: colors.text }]}>
+            {anime?.kind.toUpperCase() || 'N/A'}
+          </Text>
+        </View>
+        <View style={styles.infoItem}>
+          <MaterialCommunityIcons name="calendar" size={16} color={colors.text} />
+          <Text style={[styles.infoText, { color: colors.text }]}>
+            {anime?.airedOn?.date.toString() || 'N/A'}
+          </Text>
+        </View>
+        <View style={styles.infoItem}>
+          <FontAwesome name="star" size={16} color={colors.text} />
+          <Text style={[styles.infoText, { color: colors.text}]}>
+            {anime?.score || 'N/A'}
+          </Text>
+        </View>
       </View>
 
       <View style={styles.actions}>
@@ -458,5 +480,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 4,
+  },
+  infoBadge: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginHorizontal: 24, // Совпадает с боковыми отступами кнопок
+    marginBottom: 4, // Уменьшен для равенства с верхним отступом
+    borderRadius: 8,
+  },
+  infoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  infoText: {
+    marginLeft: 4,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });
