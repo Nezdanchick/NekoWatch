@@ -33,8 +33,6 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const { watchHistory } = useAnimeStore();
-  const recentHistory = watchHistory
-    .slice(0, 5);
 
   const animationValue = useRef(new Animated.Value(1)).current;
 
@@ -195,11 +193,11 @@ export default function HomeScreen() {
         <View style={styles.footer} />
       </Animated.ScrollView>
 
-      {recentHistory.length > 0 && (
+      {watchHistory.length > 0 && (
         <Animated.View
           style={[styles.watchHistoryContainer, { transform: [{ translateY }], opacity }]}
         >
-          <SwipableHistoryItem key={`${recentHistory[0].animeId}`} item={recentHistory[0]} />
+          <SwipableHistoryItem key={`${watchHistory[0].animeId}`} item={watchHistory[0]} />
         </Animated.View>
       )}
     </SafeAreaView>

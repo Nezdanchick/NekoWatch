@@ -54,9 +54,14 @@ export const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_
 
 // tv movie ova ona special music tv_special web
 const HIDE_KINDS = ['music', 'tv_special'];
+const SINGLE_KINDS = ['movie', 'special']
 
 export function canShow(anime: AnimeInfo) {
   return !HIDE_KINDS.includes(anime.kind);
+}
+
+export function canShowSeries(anime: AnimeInfo) {
+  return !SINGLE_KINDS.includes(anime.kind);
 }
 
 export function canOpen(anime: AnimeInfo) {

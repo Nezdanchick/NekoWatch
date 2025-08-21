@@ -69,14 +69,6 @@ export default function AnimeList({
     );
   }
 
-  if (loading && data.length === 0) {
-    return (
-      <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
   if (data.length === 0 && !loading) {
     return null;
   }
@@ -100,7 +92,7 @@ export default function AnimeList({
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={horizontal ? styles.horizontalList : styles.gridList}
-        numColumns={horizontal ? 1 : 2} // Две карточки в ряд
+        numColumns={horizontal ? 1 : 2}
         key={horizontal ? 'horizontal' : 'grid'}
       />
     </View>

@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Animated, StyleSheet, View, Dimensions, PanResponder, GestureResponderEvent } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { Animated, StyleSheet, View, Dimensions, PanResponder } from 'react-native';
 import WatchHistoryItem, { WatchHistoryItemProps } from '@/components/WatchHistoryItem';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -8,6 +8,11 @@ const SwipeableHistoryItem: React.FC<WatchHistoryItemProps> = ({ item }) => {
   const [isRemoved, setIsRemoved] = useState(false);
   const translateX = useRef(new Animated.Value(0)).current;
   const isSwiping = useRef(false);
+
+  useEffect(() => {
+    setIsRemoved(false);
+    translateX.setValue(0);
+  }, [item]);
 
   const panResponder = useRef(
     PanResponder.create({

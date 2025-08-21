@@ -5,7 +5,7 @@ import { FontAwesome } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { AnimeInfo, MISSING_POSTER_URL } from '@/types/anime';
+import { canShowSeries, AnimeInfo, MISSING_POSTER_URL } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
@@ -19,6 +19,7 @@ export default function AnimeDetailsScreen() {
   const animeId = parseInt(id as string);
 
   const [anime, setAnime] = useState<AnimeInfo | null>(null);
+  const [kodik, setKodik] = useState<any[]>([]);
   const [kodikTranslations, setKodikTranslations] = useState<any[]>([]);
   const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +61,8 @@ export default function AnimeDetailsScreen() {
         screenshots = kodikResults[0].material_data.screenshots || [];
       }
       setAnime(animeDetails);
+      setKodik(kodikResults);
+
       setAnimeDescription(kodikDescription);
       setKodikTranslations(kodikResults);
       setKodikScreenshots(screenshots);
@@ -236,14 +239,24 @@ export default function AnimeDetailsScreen() {
         </Text>
       </View>
 
-      {/* Новая плашка с информацией */}
+      {/* Плашка с информацией */}
       <View style={[styles.infoBadge, { backgroundColor: colors.card }]}>
         <View style={styles.infoItem}>
           <MaterialCommunityIcons name="tag" size={16} color={colors.text} />
           <Text style={[styles.infoText, { color: colors.text }]}>
-            {anime?.kind.toUpperCase() || 'N/A'}
+            {anime.kind.toUpperCase() || 'N/A'}
           </Text>
         </View>
+
+        {canShowSeries(anime) && (
+          <View style={styles.infoItem}>
+            <FontAwesome name="video-camera" size={16} color={colors.text} />
+            <Text style={[styles.infoText, { color: colors.text }]}>
+              {`${kodik[0].material_data.episodes_aired || '?'}/${kodik[0].material_data.episodes_total || '?'}`}
+            </Text>
+          </View>
+        )}
+
         <View style={styles.infoItem}>
           <MaterialCommunityIcons name="calendar" size={16} color={colors.text} />
           <Text style={[styles.infoText, { color: colors.text }]}>
@@ -252,7 +265,7 @@ export default function AnimeDetailsScreen() {
         </View>
         <View style={styles.infoItem}>
           <FontAwesome name="star" size={16} color={colors.text} />
-          <Text style={[styles.infoText, { color: colors.text}]}>
+          <Text style={[styles.infoText, { color: colors.text }]}>
             {anime?.score || 'N/A'}
           </Text>
         </View>

@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 20,
-    width: '100%', // Убедитесь, что ширина и высота указаны
+    width: '100%',
     height: '100%',
   },
   lockText: {

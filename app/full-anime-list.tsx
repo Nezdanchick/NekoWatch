@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FullAnimeList() {
   const { colors } = useThemeStore();
-  const { type, title } = useLocalSearchParams(); // Получаем тип и заголовок
+  const { type, title } = useLocalSearchParams();
   const [data, setData] = useState<AnimeInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
@@ -58,9 +58,9 @@ export default function FullAnimeList() {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.list]} // Центрируем карточки
-        numColumns={2} // Две карточки в ряд
-        onEndReached={handleEndReached} // Подгрузка новых данных
+        contentContainerStyle={[styles.list]}
+        numColumns={2}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           loading ? (
