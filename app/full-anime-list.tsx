@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   list: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   footer: {
@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
   },
   cardContainer: {
     width: '50%',
+    alignItems: 'center',
     padding: 4,
   },
 });

@@ -53,11 +53,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   cardContainer: {
     width: '50%',
+    alignItems: 'center',
     padding: 4,
   },
   centerContainer: {

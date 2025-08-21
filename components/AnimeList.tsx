@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import AnimeCard from './AnimeCard';
@@ -7,64 +7,46 @@ import { useThemeStore } from '@/store/theme-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 
 interface AnimeListProps {
-  type: 'popular' | 'latest' | 'ongoing' | 'anons'; // Тип аниме
+  type: 'popular' | 'latest' | 'ongoing' | 'anons';
   title?: string;
+  data: AnimeInfo[];
+  loading: boolean;
+  error: string | null;
+  onEndReached?: () => void;
   horizontal?: boolean;
   cardSize?: 'small' | 'medium' | 'large';
-  limit?: number; // Лимит отображаемых аниме
 }
 
 export default function AnimeList({
   type,
   title,
+  data,
+  loading,
+  error,
+  onEndReached,
   horizontal = false,
   cardSize = 'medium',
-  limit = 25, // По умолчанию 25
 }: AnimeListProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
-
-  const [data, setData] = useState<AnimeInfo[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadAnimeData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const fetchParams = {
-        popular: [1, limit, 'popularity'],
-        latest: [1, limit, 'ranked_shiki', undefined, 'latest'],
-        ongoing: [1, limit, 'ranked', undefined, 'ongoing'],
-        anons: [1, limit, 'aired_on', undefined, 'anons'],
-      }[type] as Parameters<typeof fetchAnimeList>;
-
-      const freshData = await fetchAnimeList(...fetchParams);
-      setData(freshData || []);
-    } catch (err) {
-      setError('Ошибка при загрузке данных');
-      console.error(`Error fetching ${type} anime:`, err);
-    } finally {
-      setLoading(false);
-    }
-  }, [type, limit]);
-
-  useEffect(() => {
-    loadAnimeData();
-  }, [loadAnimeData]);
-
   const handleViewAll = () => {
     router.push({
       pathname: '/full-anime-list',
       params: { title, type },
     });
   };
-
   if (error) {
     return (
       <View style={[styles.centerContainer, { backgroundColor: colors.background }]}>
         <Text style={[styles.errorText, { color: colors.secondary }]}>Ошибка: {error}</Text>
+      </View>
+    );
+  }
+
+  if (loading && data.length === 0) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
