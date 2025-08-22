@@ -2,12 +2,12 @@ import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import { AnimeInfo, MISSING_POSTER_URL, canOpen } from '@/types/anime';
+import { ShikimoriInfo, MISSING_POSTER_URL, canOpen } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 
 interface AnimeCardProps {
-  anime: AnimeInfo;
+  anime: ShikimoriInfo;
   size?: 'small' | 'medium' | 'large';
   onRemoveFavorite?: (animeId: number) => void;
 }

@@ -1,14 +1,14 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AnimeInfo, WatchHistoryItem } from '@/types/anime';
+import { ShikimoriInfo, WatchHistoryItem } from '@/types/anime';
 
 interface AnimeState {
   favorites: number[];
-  favoritesData: AnimeInfo[]; // Добавляем кеш данных
+  favoritesData: ShikimoriInfo[];
   watchHistory: WatchHistoryItem[];
 
-  addToFavorites: (anime: AnimeInfo) => void; // Теперь принимаем объект аниме
+  addToFavorites: (anime: ShikimoriInfo) => void;
   removeFromFavorites: (animeId: number) => void;
   isFavorite: (animeId: number) => boolean;
 
@@ -23,7 +23,7 @@ export const useAnimeStore = create<AnimeState>()(
       favoritesData: [],
       watchHistory: [],
 
-      addToFavorites: (anime: AnimeInfo) =>
+      addToFavorites: (anime: ShikimoriInfo) =>
         set((state) => ({
           favorites: [...new Set([...state.favorites, anime.id])],
           favoritesData: [...state.favoritesData, anime].filter(

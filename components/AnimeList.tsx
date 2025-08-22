@@ -2,14 +2,14 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import AnimeCard from './AnimeCard';
-import { AnimeInfo, canShow } from '@/types/anime';
+import { ShikimoriInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 
 interface AnimeListProps {
   type: 'popular' | 'latest' | 'ongoing' | 'anons';
   title?: string;
-  data: AnimeInfo[];
+  data: ShikimoriInfo[];
   loading: boolean;
   error: string | null;
   onEndReached?: () => void;

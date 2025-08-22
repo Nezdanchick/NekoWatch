@@ -5,12 +5,40 @@ import { FontAwesome } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { canShowSeries, AnimeInfo, MISSING_POSTER_URL } from '@/types/anime';
+import { canShowSeries, ShikimoriInfo as ShikimoriInfo, MISSING_POSTER_URL } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DESCRIPTION_PLACEHOLDER = "Кажется, здесь ничего нет (￣▽￣*)";
+const ANIME_CACHE_KEY = 'kodikCache';
+
+async function getFromCache(animeId: number) {
+  const cacheStr = await AsyncStorage.getItem(ANIME_CACHE_KEY);
+  if (!cacheStr) return null;
+  const cache: [number, { kodik?: any; shikimori?: ShikimoriInfo }][] = JSON.parse(cacheStr);
+  const found = cache.find(([id]) => id === animeId);
+  if (found) {
+    const filtered = cache.filter(([id]) => id !== animeId);
+    const updated = [...filtered, found];
+    await AsyncStorage.setItem(ANIME_CACHE_KEY, JSON.stringify(updated));
+    return found[1];
+  }
+  return null;
+}
+
+async function setToCache(animeId: number, kodik?: any, shikimori?: ShikimoriInfo) {
+  const cacheStr = await AsyncStorage.getItem(ANIME_CACHE_KEY);
+  let cache: [number, { kodik?: any; shikimori?: ShikimoriInfo }][] = cacheStr ? JSON.parse(cacheStr) : [];
+  let cached = cache.find(([id]) => id === animeId)?.[1] || {};
+  if (kodik) cached.kodik = kodik;
+  if (shikimori) cached.shikimori = shikimori;
+  cache = cache.filter(([id]) => id !== animeId);
+  cache.push([animeId, cached]);
+  if (cache.length > 25) cache = cache.slice(-25);
+  await AsyncStorage.setItem(ANIME_CACHE_KEY, JSON.stringify(cache));
+}
 
 export default function AnimeDetailsScreen() {
   const { colors } = useThemeStore();
@@ -18,7 +46,7 @@ export default function AnimeDetailsScreen() {
   const router = useRouter();
   const animeId = parseInt(id as string);
 
-  const [anime, setAnime] = useState<AnimeInfo | null>(null);
+  const [anime, setAnime] = useState<ShikimoriInfo | null>(null);
   const [kodik, setKodik] = useState<any[]>([]);
   const [kodikTranslations, setKodikTranslations] = useState<any[]>([]);
   const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
@@ -28,54 +56,117 @@ export default function AnimeDetailsScreen() {
   const [animeDescription, setAnimeDescription] = useState<string | null>(null);
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
   const [favorite, setFavorite] = useState(false);
-  const [isTitleExpanded, setTitleExpanded] = useState(false); // Переместите сюда
+  const [isTitleExpanded, setTitleExpanded] = useState(false);
+  const [showCached, setShowCached] = useState(false);
   const animationHeight = useRef(new Animated.Value(0)).current;
   const animationInProgress = useRef(false);
 
   const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
-
   const screenWidth = Dimensions.get('window').width;
 
   useEffect(() => {
     if (anime) setFavorite(isFavorite(anime.id));
   }, [anime, isFavorite]);
 
-  const loadAnimeDetails = useCallback(async () => {
-    if (!animeId || isNaN(animeId)) {
-      setError('Неверный ID аниме');
+  const loadFromCache = useCallback(async () => {
+    const cached = await getFromCache(animeId);
+    if (cached) {
+      if (cached.shikimori) setAnime(cached.shikimori);
+      if (Array.isArray(cached.kodik)) {
+        setKodik(cached.kodik);
+        setKodikTranslations(cached.kodik);
+        let kodikDescription = "";
+        let screenshots: string[] = [];
+        if (cached.kodik.length > 0 && cached.kodik[0].material_data) {
+          kodikDescription = cached.kodik[0].material_data.description || DESCRIPTION_PLACEHOLDER;
+          screenshots = cached.kodik[0].material_data.screenshots || [];
+        }
+        setKodikScreenshots(screenshots);
+        setAnimeDescription(kodikDescription);
+      }
+      setShowCached(true);
       setLoading(false);
-      return;
+      return cached;
     }
+    return {};
+  }, [animeId]);
+
+  // Функция с повторными попытками
+  async function fetchWithRetry(fetchFn: () => Promise<any>, maxAttempts = 10, delayMs = 2000) {
+    let attempt = 0;
+    while (attempt < maxAttempts) {
+      try {
+        const result = await fetchFn();
+        return result;
+      } catch {
+        attempt++;
+        await new Promise(res => setTimeout(res, delayMs));
+      }
+    }
+    return null;
+  }
+
+  const loadFromNetwork = useCallback(async (cached: { kodik?: any; shikimori?: ShikimoriInfo }) => {
     setLoading(true);
     setError(null);
-    try {
-      const [animeDetails, kodikResults] = await Promise.all([
-        fetchAnimeDetails(animeId),
-        searchKodikByShikimoriId(animeId, true),
-      ]);
-      if (!animeDetails) throw new Error('Не удалось загрузить информацию об аниме');
+
+    let animeDetails = cached?.shikimori || null;
+    let kodikResults = Array.isArray(cached?.kodik) ? cached.kodik : null;
+
+    if (!animeDetails) {
+      animeDetails = await fetchWithRetry(() => fetchAnimeDetails(animeId));
+      if (animeDetails) {
+        setAnime(animeDetails);
+        await setToCache(animeId, undefined, animeDetails);
+      }
+    } else {
+      setAnime(animeDetails);
+    }
+
+    if (!kodikResults) {
+      kodikResults = await fetchWithRetry(() => searchKodikByShikimoriId(animeId, true));
+      if (kodikResults) {
+        setKodik(kodikResults);
+        setKodikTranslations(kodikResults);
+        let kodikDescription = "";
+        let screenshots: string[] = [];
+        if (kodikResults.length > 0 && kodikResults[0].material_data) {
+          kodikDescription = kodikResults[0].material_data.description || DESCRIPTION_PLACEHOLDER;
+          screenshots = kodikResults[0].material_data.screenshots || [];
+        }
+        setKodikScreenshots(screenshots);
+        setAnimeDescription(kodikDescription);
+        await setToCache(animeId, kodikResults, undefined);
+      }
+    } else {
+      setKodik(kodikResults);
+      setKodikTranslations(kodikResults);
       let kodikDescription = "";
       let screenshots: string[] = [];
       if (kodikResults.length > 0 && kodikResults[0].material_data) {
         kodikDescription = kodikResults[0].material_data.description || DESCRIPTION_PLACEHOLDER;
         screenshots = kodikResults[0].material_data.screenshots || [];
       }
-      setAnime(animeDetails);
-      setKodik(kodikResults);
-
-      setAnimeDescription(kodikDescription);
-      setKodikTranslations(kodikResults);
       setKodikScreenshots(screenshots);
-    } catch {
-      setError('Ошибка при загрузке информации об аниме');
-    } finally {
-      setLoading(false);
+      setAnimeDescription(kodikDescription);
     }
+
+    if (!animeDetails && !kodikResults) {
+      setError('Ошибка при загрузке информации об аниме');
+    }
+    setLoading(false);
   }, [animeId]);
 
   useEffect(() => {
-    loadAnimeDetails();
-  }, [loadAnimeDetails]);
+    if (!animeId || isNaN(animeId)) {
+      setError('Неверный ID аниме');
+      setLoading(false);
+      return;
+    }
+    loadFromCache().then((cached) => {
+      loadFromNetwork(cached);
+    });
+  }, [animeId]);
 
   const imageUrl = anime?.poster?.mainUrl || MISSING_POSTER_URL;
 
@@ -91,13 +182,11 @@ export default function AnimeDetailsScreen() {
     if (kodikTranslations.length > 0) handleWatchPress(kodikTranslations[0].link);
   };
 
-  const getTargetHeight = () => kodikTranslations.length * (styles.episodeButton.height + 8);
+  const getTargetHeight = () => Array.isArray(kodikTranslations) ? kodikTranslations.length * (styles.episodeButton.height + 8) : 0;
 
   const toggleTranslationsVisibility = () => {
     if (animationInProgress.current) {
-      animationHeight.stopAnimation(() => {
-        doToggle();
-      });
+      animationHeight.stopAnimation(() => doToggle());
     } else {
       doToggle();
     }
@@ -108,9 +197,7 @@ export default function AnimeDetailsScreen() {
     const baseDuration = 100;
     const maxDuration = 750;
     const scaleFactor = 0.15;
-
     const duration = baseDuration + (maxDuration - baseDuration) * (1 - Math.exp(-scaleFactor * itemsCount));
-
     return Math.min(duration, maxDuration);
   };
 
@@ -147,7 +234,7 @@ export default function AnimeDetailsScreen() {
     }
   }, [kodikTranslations.length]);
 
-  if (loading) {
+  if (loading && !showCached) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -159,7 +246,7 @@ export default function AnimeDetailsScreen() {
   if (error || !anime) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, { color: colors.text }]}>{error || 'Аниме не найдено'}</Text>
+        <Text style={styles.errorText}>{error || 'Ошибка загрузки'}</Text>
       </View>
     );
   }

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
-import { AnimeInfo } from '@/types/anime';
+import { ShikimoriInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
@@ -25,10 +25,10 @@ interface CacheEntry<T> {
 
 export default function HomeScreen() {
   const { colors } = useThemeStore();
-  const [popularAnime, setPopularAnime] = useState<AnimeInfo[]>([]);
-  const [latestAnime, setLatestAnime] = useState<AnimeInfo[]>([]);
-  const [ongoingAnime, setOngoingAnime] = useState<AnimeInfo[]>([]);
-  const [anonsAnime, setAnonsAnime] = useState<AnimeInfo[]>([]);
+  const [popularAnime, setPopularAnime] = useState<ShikimoriInfo[]>([]);
+  const [latestAnime, setLatestAnime] = useState<ShikimoriInfo[]>([]);
+  const [ongoingAnime, setOngoingAnime] = useState<ShikimoriInfo[]>([]);
+  const [anonsAnime, setAnonsAnime] = useState<ShikimoriInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -80,10 +80,10 @@ export default function HomeScreen() {
   const loadAnimeData = useCallback(
     async (
       cacheKey: string,
-      setData: (data: AnimeInfo[]) => void,
+      setData: (data: ShikimoriInfo[]) => void,
       fetchParams: Parameters<typeof fetchAnimeList>
     ) => {
-      const cached = await getCachedData<AnimeInfo[]>(cacheKey);
+      const cached = await getCachedData<ShikimoriInfo[]>(cacheKey);
 
       if (cached?.data) {
         setData(cached.data);

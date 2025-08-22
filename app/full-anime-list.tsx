@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import AnimeCard from '@/components/AnimeCard';
-import { AnimeInfo, canShow } from '@/types/anime';
+import { ShikimoriInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function FullAnimeList() {
   const { colors } = useThemeStore();
   const { type, title } = useLocalSearchParams();
-  const [data, setData] = useState<AnimeInfo[]>([]);
+  const [data, setData] = useState<ShikimoriInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
 
@@ -43,7 +43,7 @@ export default function FullAnimeList() {
       setPage((prevPage) => prevPage + 1);
     }
   };
-  const renderItem = ({ item }: { item: AnimeInfo }) => (
+  const renderItem = ({ item }: { item: ShikimoriInfo }) => (
       <View style={styles.cardContainer}>
         <AnimeCard 
           anime={item} 

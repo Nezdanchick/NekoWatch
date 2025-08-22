@@ -3,14 +3,14 @@ import { StyleSheet, View, Text, FlatList, ActivityIndicator, TextInput, Platfor
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { searchAnime } from '@/services/shikimori-api';
-import { AnimeInfo, canShow } from '@/types/anime';
+import { ShikimoriInfo, canShow } from '@/types/anime';
 import SearchBar from '@/components/SearchBar';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<AnimeInfo[]>([]);
+  const [searchResults, setSearchResults] = useState<ShikimoriInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
@@ -82,7 +82,7 @@ export default function SearchScreen() {
     }
   };
 
-  const renderItem = ({ item }: { item: AnimeInfo }) => (
+  const renderItem = ({ item }: { item: ShikimoriInfo }) => (
     <View style={styles.cardContainer}>
       <AnimeCard anime={item} />
     </View>

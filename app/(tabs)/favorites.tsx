@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
-import { AnimeInfo } from '@/types/anime';
+import { ShikimoriInfo } from '@/types/anime';
 
 export default function FavoritesScreen() {
   const { colors } = useThemeStore();
@@ -20,7 +20,7 @@ export default function FavoritesScreen() {
     setTimeout(() => setRefreshing(false), 500);
   };
 
-  const renderItem = ({ item }: { item: AnimeInfo }) => (
+  const renderItem = ({ item }: { item: ShikimoriInfo }) => (
     <View style={styles.cardContainer}>
       <AnimeCard 
         anime={item} 

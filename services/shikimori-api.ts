@@ -1,4 +1,4 @@
-import { AnimeInfo } from "@/types/anime";
+import { ShikimoriInfo } from "@/types/anime";
 import { Platform } from "react-native";
 
 const GRAPHQL_URL = "https://shikimori.one/api/graphql";
@@ -74,7 +74,7 @@ export async function fetchAnimeList(
   status?: string,
   season?: string,
   score?: number
-): Promise<AnimeInfo[]> {
+): Promise<ShikimoriInfo[]> {
   const query = `
 query(
   $page: PositiveInt
@@ -100,11 +100,11 @@ query(
 `;
 
   const variables = { page, limit, order, kind, status, season, score };
-  const data = await graphqlRequest<{ animes: AnimeInfo[] }>(query, variables);
+  const data = await graphqlRequest<{ animes: ShikimoriInfo[] }>(query, variables);
   return data?.animes || [];
 }
 
-export async function fetchAnimeDetails(id: number): Promise<AnimeInfo | null> {
+export async function fetchAnimeDetails(id: number): Promise<ShikimoriInfo | null> {
   const query = `
 query($ids: String!) {
   animes(ids: $ids) {
@@ -115,7 +115,7 @@ query($ids: String!) {
 
   try {
     await delay(300);
-    const data = await graphqlRequest<{ animes: AnimeInfo[] }>(query, { ids: String(id) });
+    const data = await graphqlRequest<{ animes: ShikimoriInfo[] }>(query, { ids: String(id) });
     return data?.animes?.[0] || null;
   } catch (error) {
     console.error("Error fetching anime details:", error);
@@ -123,7 +123,7 @@ query($ids: String!) {
   }
 }
 
-export async function searchAnime(query: string, page = 1, limit = 20): Promise<AnimeInfo[]> {
+export async function searchAnime(query: string, page = 1, limit = 20): Promise<ShikimoriInfo[]> {
   if (!query.trim()) return [];
 
   const gqlQuery = `
@@ -135,6 +135,6 @@ query($search: String!, $page: Int, $limit: Int) {
 `;
 
   const variables = { search: query, page, limit };
-  const data = await graphqlRequest<{ animes: AnimeInfo[] }>(gqlQuery, variables);
+  const data = await graphqlRequest<{ animes: ShikimoriInfo[] }>(gqlQuery, variables);
   return data?.animes || [];
 }

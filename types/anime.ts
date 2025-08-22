@@ -1,4 +1,4 @@
-export interface AnimeInfo {
+export interface ShikimoriInfo {
   id: number;
   name: string;
   russian: string;
@@ -56,14 +56,14 @@ export const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_
 const HIDE_KINDS = ['music', 'tv_special'];
 const SINGLE_KINDS = ['movie', 'special']
 
-export function canShow(anime: AnimeInfo) {
+export function canShow(anime: ShikimoriInfo) {
   return !HIDE_KINDS.includes(anime.kind);
 }
 
-export function canShowSeries(anime: AnimeInfo) {
+export function canShowSeries(anime: ShikimoriInfo) {
   return !SINGLE_KINDS.includes(anime.kind);
 }
 
-export function canOpen(anime: AnimeInfo) {
+export function canOpen(anime: ShikimoriInfo) {
   return anime.score !== 0;
 }
