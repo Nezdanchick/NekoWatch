@@ -111,6 +111,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    marginTop: '2%',
   },
   scrollContent: {
     flexGrow: 1,
