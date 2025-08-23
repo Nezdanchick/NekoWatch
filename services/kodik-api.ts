@@ -1,23 +1,5 @@
 const BASE_URL = 'https://neko-kodik.deno.dev'
 
-export interface KodikTranslation {
-  title: string,
-}
-
-export interface KodikMaterialData {
-  description: string,
-  poster_url: string,
-  anime_poster_url: string,
-}
-
-export interface KodikSerial {
-  id: string,
-  title: string,
-  translation: KodikTranslation,
-  material_data: KodikMaterialData,
-  screenshots: string[],
-}
-
 export const searchKodikByShikimoriId = async (shikimoriId: number, withMaterialData: boolean = false) => {
   try {
     console.log('Searching anime in Kodik by Shikimori ID:', shikimoriId);

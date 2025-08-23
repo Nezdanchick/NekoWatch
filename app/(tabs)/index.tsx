@@ -6,7 +6,7 @@ import { useAnimeStore } from '@/store/anime-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 import { ShikimoriInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
-import SwipableHistoryItem from '@/components/SwipableHistoryItem';
+import SwipableHistoryItem from '@/components/history/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 import * as ScreenOrientation from 'expo-screen-orientation';
 

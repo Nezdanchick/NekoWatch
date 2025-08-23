@@ -13,33 +13,20 @@ export type WatchHistoryItemProps = {
 
 export default function WatchHistoryItem({ item, continueWatchingShow = false }: WatchHistoryItemProps) {
   const router = useRouter();
-  const [link, setLink] = React.useState<string | null>(null);
   const { colors } = useThemeStore();
-
-  React.useEffect(() => {
-    const fetchLink = async () => {
-      try {
-        const result = await searchKodikByShikimoriId(item.animeId);
-        setLink(result[0]?.link || null);
-      } catch (error) {
-        console.error('Error fetching link:', error);
-      }
-    };
-    fetchLink();
-  }, [item.animeId]);
 
   const handleAnimeInfo = () => {
     router.push(`/anime/${item.animeId}`);
   };
 
   const handleContinueWatching = () => {
-    if (!link) return;
+    if (!item.link) return;
     
     router.push({
-      pathname: '/player/[id]',
+      pathname: '/screens/player',
       params: {
         id: item.animeId.toString(),
-        kodikUrl: link,
+        kodikUrl: item.link,
       },
     });
   };
@@ -75,7 +62,7 @@ export default function WatchHistoryItem({ item, continueWatchingShow = false }:
           style={[styles.playButton, { backgroundColor: colors.primary }]} 
           onPress={handleContinueWatching}
           activeOpacity={0.7}
-          disabled={!link}
+          disabled={!item.link}
         >
           <FontAwesome name="play" size={20} color={colors.text} />
         </TouchableOpacity>

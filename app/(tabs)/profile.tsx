@@ -34,7 +34,7 @@ export default function ProfileScreen() {
   };
 
   const handleHistoryPress = () => {
-    router.push({ pathname: '/history/history' });
+    router.push({ pathname: '/screens/history' });
   };
 
   const renderMenuItem = (icon: React.ReactNode, title: string, subtitle: string, onPress?: () => void, badge?: number) => (

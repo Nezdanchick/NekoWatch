@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Animated, StyleSheet, View, Dimensions, PanResponder } from 'react-native';
-import WatchHistoryItem, { WatchHistoryItemProps } from '@/components/WatchHistoryItem';
+import WatchHistoryItem, { WatchHistoryItemProps } from '@/components/history/WatchHistoryItem';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -18,7 +18,7 @@ const SwipeableHistoryItem: React.FC<WatchHistoryItemProps> = ({ item }) => {
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Начинаем обрабатывать свайп только при значительном смещении
+        
         const isHorizontalSwipe = Math.abs(gestureState.dx) > 5 && Math.abs(gestureState.dy) < 10;
         if (isHorizontalSwipe) {
           isSwiping.current = true;

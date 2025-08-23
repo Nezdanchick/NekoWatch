@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, FlatList, View, Text, Pressable } from 'react-native';
 import { useAnimeStore } from '@/store/anime-store';
-import WatchHistoryItem from '@/components/WatchHistoryItem';
+import WatchHistoryItem from '@/components/history/WatchHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 import { Stack } from 'expo-router';
 import ConfirmationModal from '@/components/ConfirmationModal';

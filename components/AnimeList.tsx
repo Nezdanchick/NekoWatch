@@ -31,7 +31,7 @@ export default function AnimeList({
   const router = useRouter();
   const handleViewAll = () => {
     router.push({
-      pathname: '/full-anime-list',
+      pathname: '/screens/anime-list',
       params: { title, type },
     });
   };

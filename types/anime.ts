@@ -1,3 +1,25 @@
+export interface KodikTranslation {
+  title: string,
+}
+
+export interface KodikMaterialData {
+  description: string,
+  poster_url: string,
+  anime_poster_url: string,
+  screenshots: string[],
+  episodes_total: number | null,
+  episodes_aired: number | null,
+}
+
+export interface KodikInfo {
+  id: string,
+  title: string,
+  link: string,
+  translation: KodikTranslation,
+  screenshots: string[],
+  material_data: KodikMaterialData,
+}
+
 export interface ShikimoriInfo {
   id: number;
   name: string;
@@ -47,6 +69,7 @@ export interface WatchHistoryItem {
   animeId: number;
   title: string;
   image: string;
+  link?: string;
   lastWatched: number;
 }
 

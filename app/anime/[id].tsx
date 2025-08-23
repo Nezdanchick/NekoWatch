@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, Animated, FlatList, Dimensions } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, Dimensions } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { canShowSeries, ShikimoriInfo as ShikimoriInfo, MISSING_POSTER_URL } from '@/types/anime';
-import { useAnimeStore } from '@/store/anime-store';
+import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL} from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AnimeInfo from '@/components/anime/AnimeInfo';
+import AnimeButtons from '@/components/anime/AnimeButtons';
 
 const DESCRIPTION_PLACEHOLDER = "Кажется, здесь ничего нет (￣▽￣*)";
 const ANIME_CACHE_KEY = 'kodikCache';
@@ -28,9 +27,9 @@ async function getFromCache(animeId: number) {
   return null;
 }
 
-async function setToCache(animeId: number, kodik?: any, shikimori?: ShikimoriInfo) {
+async function setToCache(animeId: number, kodik?: KodikInfo[], shikimori?: ShikimoriInfo) {
   const cacheStr = await AsyncStorage.getItem(ANIME_CACHE_KEY);
-  let cache: [number, { kodik?: any; shikimori?: ShikimoriInfo }][] = cacheStr ? JSON.parse(cacheStr) : [];
+  let cache: [number, { kodik?: KodikInfo[]; shikimori?: ShikimoriInfo }][] = cacheStr ? JSON.parse(cacheStr) : [];
   let cached = cache.find(([id]) => id === animeId)?.[1] || {};
   if (kodik) cached.kodik = kodik;
   if (shikimori) cached.shikimori = shikimori;
@@ -43,38 +42,26 @@ async function setToCache(animeId: number, kodik?: any, shikimori?: ShikimoriInf
 export default function AnimeDetailsScreen() {
   const { colors } = useThemeStore();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const animeId = parseInt(id as string);
 
-  const [anime, setAnime] = useState<ShikimoriInfo | null>(null);
-  const [kodik, setKodik] = useState<any[]>([]);
-  const [kodikTranslations, setKodikTranslations] = useState<any[]>([]);
+  const [shikimori, setShikimori] = useState<ShikimoriInfo | null>(null);
+  const [kodik, setKodik] = useState<KodikInfo[]>([]);
   const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTranslationsVisible, setTranslationsVisible] = useState(false);
   const [animeDescription, setAnimeDescription] = useState<string | null>(null);
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
-  const [favorite, setFavorite] = useState(false);
   const [isTitleExpanded, setTitleExpanded] = useState(false);
   const [showCached, setShowCached] = useState(false);
-  const animationHeight = useRef(new Animated.Value(0)).current;
-  const animationInProgress = useRef(false);
 
-  const { isFavorite, addToFavorites, removeFromFavorites, addToWatchHistory } = useAnimeStore();
   const screenWidth = Dimensions.get('window').width;
-
-  useEffect(() => {
-    if (anime) setFavorite(isFavorite(anime.id));
-  }, [anime, isFavorite]);
 
   const loadFromCache = useCallback(async () => {
     const cached = await getFromCache(animeId);
     if (cached) {
-      if (cached.shikimori) setAnime(cached.shikimori);
+      if (cached.shikimori) setShikimori(cached.shikimori);
       if (Array.isArray(cached.kodik)) {
         setKodik(cached.kodik);
-        setKodikTranslations(cached.kodik);
         let kodikDescription = "";
         let screenshots: string[] = [];
         if (cached.kodik.length > 0 && cached.kodik[0].material_data) {
@@ -91,7 +78,6 @@ export default function AnimeDetailsScreen() {
     return {};
   }, [animeId]);
 
-  // Функция с повторными попытками
   async function fetchWithRetry(fetchFn: () => Promise<any>, maxAttempts = 10, delayMs = 2000) {
     let attempt = 0;
     while (attempt < maxAttempts) {
@@ -106,28 +92,27 @@ export default function AnimeDetailsScreen() {
     return null;
   }
 
-  const loadFromNetwork = useCallback(async (cached: { kodik?: any; shikimori?: ShikimoriInfo }) => {
+  const loadFromNetwork = useCallback(async (cached: { kodik?: KodikInfo[]; shikimori?: ShikimoriInfo }) => {
     setLoading(true);
     setError(null);
 
-    let animeDetails = cached?.shikimori || null;
-    let kodikResults = Array.isArray(cached?.kodik) ? cached.kodik : null;
+    let shikimoriResults = cached?.shikimori || null;
+    let kodikResults = cached?.kodik || null;
 
-    if (!animeDetails) {
-      animeDetails = await fetchWithRetry(() => fetchAnimeDetails(animeId));
-      if (animeDetails) {
-        setAnime(animeDetails);
-        await setToCache(animeId, undefined, animeDetails);
+    if (!shikimoriResults) {
+      shikimoriResults = await fetchWithRetry(() => fetchAnimeDetails(animeId));
+      if (shikimoriResults) {
+        setShikimori(shikimoriResults);
+        await setToCache(animeId, undefined, shikimoriResults);
       }
     } else {
-      setAnime(animeDetails);
+      setShikimori(shikimoriResults);
     }
 
     if (!kodikResults) {
       kodikResults = await fetchWithRetry(() => searchKodikByShikimoriId(animeId, true));
       if (kodikResults) {
         setKodik(kodikResults);
-        setKodikTranslations(kodikResults);
         let kodikDescription = "";
         let screenshots: string[] = [];
         if (kodikResults.length > 0 && kodikResults[0].material_data) {
@@ -140,7 +125,6 @@ export default function AnimeDetailsScreen() {
       }
     } else {
       setKodik(kodikResults);
-      setKodikTranslations(kodikResults);
       let kodikDescription = "";
       let screenshots: string[] = [];
       if (kodikResults.length > 0 && kodikResults[0].material_data) {
@@ -151,8 +135,10 @@ export default function AnimeDetailsScreen() {
       setAnimeDescription(kodikDescription);
     }
 
-    if (!animeDetails && !kodikResults) {
+    if (!shikimoriResults && !kodikResults) {
       setError('Ошибка при загрузке информации об аниме');
+      setLoading(false);
+      return;
     }
     setLoading(false);
   }, [animeId]);
@@ -168,71 +154,7 @@ export default function AnimeDetailsScreen() {
     });
   }, [animeId]);
 
-  const imageUrl = anime?.poster?.mainUrl || MISSING_POSTER_URL;
-
-  const handleWatchPress = (link: string) => {
-    if (anime) addToWatchHistory(animeId, anime.russian || anime.name, imageUrl);
-    router.push({
-      pathname: '/player/[id]',
-      params: { id: animeId.toString(), kodikUrl: link },
-    });
-  };
-
-  const handlePlayWithoutSelection = () => {
-    if (kodikTranslations.length > 0) handleWatchPress(kodikTranslations[0].link);
-  };
-
-  const getTargetHeight = () => Array.isArray(kodikTranslations) ? kodikTranslations.length * (styles.episodeButton.height + 8) : 0;
-
-  const toggleTranslationsVisibility = () => {
-    if (animationInProgress.current) {
-      animationHeight.stopAnimation(() => doToggle());
-    } else {
-      doToggle();
-    }
-  };
-
-  const calculateAnimationDuration = () => {
-    const itemsCount = kodikTranslations.length;
-    const baseDuration = 100;
-    const maxDuration = 750;
-    const scaleFactor = 0.15;
-    const duration = baseDuration + (maxDuration - baseDuration) * (1 - Math.exp(-scaleFactor * itemsCount));
-    return Math.min(duration, maxDuration);
-  };
-
-  const doToggle = () => {
-    animationInProgress.current = true;
-    if (isTranslationsVisible) {
-      Animated.timing(animationHeight, {
-        toValue: 0,
-        duration: calculateAnimationDuration(),
-        useNativeDriver: false,
-      }).start(() => {
-        setTranslationsVisible(false);
-        animationInProgress.current = false;
-      });
-    } else {
-      setTranslationsVisible(true);
-      Animated.timing(animationHeight, {
-        toValue: getTargetHeight(),
-        duration: calculateAnimationDuration(),
-        useNativeDriver: false,
-      }).start(() => {
-        animationInProgress.current = false;
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (isTranslationsVisible) {
-      Animated.timing(animationHeight, {
-        toValue: getTargetHeight(),
-        duration: 300,
-        useNativeDriver: false,
-      }).start();
-    }
-  }, [kodikTranslations.length]);
+  const imageUrl = shikimori?.poster?.mainUrl || MISSING_POSTER_URL;
 
   if (loading && !showCached) {
     return (
@@ -243,22 +165,12 @@ export default function AnimeDetailsScreen() {
     );
   }
 
-  if (error || !anime) {
+  if (error || !shikimori) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-        <Text style={styles.errorText}>{error || 'Ошибка загрузки'}</Text>
+        <Text style={[styles.errorText, {color: colors.text}]}>{error || 'Ошибка загрузки'}</Text>
       </View>
     );
-  }
-
-  function toggleFavorite() {
-    if (!anime) return;
-    if (favorite) {
-      removeFromFavorites(anime.id);
-    } else {
-      addToFavorites(anime);
-    }
-    setFavorite(!favorite);
   }
 
   const toggleTitleExpansion = () => {
@@ -318,116 +230,17 @@ export default function AnimeDetailsScreen() {
             numberOfLines={isTitleExpanded ? undefined : 2}
             ellipsizeMode="tail"
           >
-            {anime?.russian || anime?.name || 'Название отсутствует'}
+            {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
           </Text>
         </Pressable>
         <Text style={[styles.originalTitle, { color: colors.subtext }]}>
-          {anime?.name || 'Оригинальное название отсутствует'}
+          {shikimori?.name || 'Оригинальное название отсутствует'}
         </Text>
       </View>
 
-      {/* Плашка с информацией */}
-      <View style={[styles.infoBadge, { backgroundColor: colors.card }]}>
-        <View style={styles.infoItem}>
-          <MaterialCommunityIcons name="tag" size={16} color={colors.text} />
-          <Text style={[styles.infoText, { color: colors.text }]}>
-            {anime.kind.toUpperCase() || 'N/A'}
-          </Text>
-        </View>
+      <AnimeInfo shikimori={shikimori} kodik={kodik[0]} />
 
-        {canShowSeries(anime) && (
-          <View style={styles.infoItem}>
-            <FontAwesome name="video-camera" size={16} color={colors.text} />
-            <Text style={[styles.infoText, { color: colors.text }]}>
-              {`${kodik[0].material_data.episodes_aired || '?'}/${kodik[0].material_data.episodes_total || '?'}`}
-            </Text>
-          </View>
-        )}
-
-        <View style={styles.infoItem}>
-          <MaterialCommunityIcons name="calendar" size={16} color={colors.text} />
-          <Text style={[styles.infoText, { color: colors.text }]}>
-            {anime?.airedOn?.date.toString() || 'N/A'}
-          </Text>
-        </View>
-        <View style={styles.infoItem}>
-          <FontAwesome name="star" size={16} color={colors.text} />
-          <Text style={[styles.infoText, { color: colors.text }]}>
-            {anime?.score || 'N/A'}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.actions}>
-        <View style={styles.folderButtonContainer}>
-          <Pressable style={[styles.smallButton, { backgroundColor: colors.card }]} onPress={toggleFavorite}>
-            <FontAwesome
-              name="heart"
-              size={16}
-              color={favorite ? colors.secondary : colors.text}
-            />
-          </Pressable>
-          <Pressable
-            style={[
-              styles.folderButton,
-              kodikTranslations.length !== 0
-                ? { backgroundColor: colors.card }
-                : { backgroundColor: colors.disabled },
-            ]}
-            onPress={toggleTranslationsVisibility}
-            disabled={!kodikTranslations.length}
-          >
-            {kodikTranslations.length ? (
-              <MaterialCommunityIcons
-                name={isTranslationsVisible ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color={colors.text}
-              />
-            ) : null}
-            <Text style={[styles.folderText, { color: colors.text }]}>
-              {kodikTranslations.length ? 'Озвучки' : 'Нет доступных озвучек'}
-            </Text>
-          </Pressable>
-          {kodikTranslations.length > 0 && (
-            <Pressable
-              style={({ pressed }) => [
-                styles.smallButton,
-                { backgroundColor: colors.primary },
-                pressed && { opacity: 0.7 },
-              ]}
-              onPress={handlePlayWithoutSelection}
-            >
-              <MaterialCommunityIcons
-                name="play"
-                size={20}
-                color={colors.text}
-              />
-            </Pressable>
-          )}
-        </View>
-        <Animated.View
-          style={[
-            styles.animatedContainer,
-            {
-              height: animationHeight,
-              marginTop: 16,
-              paddingHorizontal: 8,
-            },
-          ]}
-        >
-          {kodikTranslations.map((episode: any, index: number) => (
-            <Pressable
-              key={episode?.id || index}
-              style={[styles.episodeButton, { backgroundColor: colors.card }]}
-              onPress={() => handleWatchPress(episode?.link || '')}
-            >
-              <Text style={[styles.episodeText, { color: colors.text }]}>
-                {episode?.translation?.title || 'Без названия'}
-              </Text>
-            </Pressable>
-          ))}
-        </Animated.View>
-      </View>
+      <AnimeButtons shikimori={shikimori} kodik={kodik} />
 
       {animeDescription && (
         <View style={styles.descriptionContainer}>
@@ -497,55 +310,6 @@ const styles = StyleSheet.create({
   originalTitle: {
     fontSize: 14,
   },
-  actions: {
-    flexDirection: 'column',
-    padding: 16,
-  },
-  translationsContainer: {
-    padding: 16,
-  },
-  folderButtonContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  folderButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    flex: 1,
-    marginHorizontal: 8,
-    height: 48,
-  },
-  folderText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  smallButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8,
-  },
-  animatedContainer: {
-    overflow: 'hidden',
-  },
-  episodeButton: {
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 4,
-    alignItems: 'center',
-    height: 50,
-  },
-  episodeText: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
   descriptionContainer: {
     paddingHorizontal: 16,
     marginBottom: 35,
@@ -580,23 +344,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 4,
-  },
-  infoBadge: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 8,
-    marginHorizontal: 24, // Совпадает с боковыми отступами кнопок
-    marginBottom: 4, // Уменьшен для равенства с верхним отступом
-    borderRadius: 8,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  infoText: {
-    marginLeft: 4,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  }
 });

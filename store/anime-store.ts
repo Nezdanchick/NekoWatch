@@ -12,7 +12,7 @@ interface AnimeState {
   removeFromFavorites: (animeId: number) => void;
   isFavorite: (animeId: number) => boolean;
 
-  addToWatchHistory: (animeId: number, title: string, image: string) => void;
+  addToWatchHistory: (animeId: number, title: string, image: string, link?: string) => void;
   clearWatchHistory: () => void;
 }
 
@@ -41,12 +41,13 @@ export const useAnimeStore = create<AnimeState>()(
       isFavorite: (animeId: number) =>
         get().favorites.includes(animeId),
 
-      addToWatchHistory: (animeId: number, title: string, image: string) =>
+      addToWatchHistory: (animeId: number, title: string, image: string, link?: string) =>
         set((state) => {
           const item: WatchHistoryItem = {
             animeId,
             title,
             image,
+            link,
             lastWatched: Date.now()
           };
           const filteredHistory = state.watchHistory.filter(

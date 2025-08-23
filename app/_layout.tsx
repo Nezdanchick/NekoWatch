@@ -57,7 +57,7 @@ function RootLayoutNav() {
         }}
       />
       <Stack.Screen
-        name="player/[id]"
+        name="screens/player"
         options={{
           headerShown: false,
           statusBarHidden: true,
@@ -66,13 +66,13 @@ function RootLayoutNav() {
         }}
        />
       <Stack.Screen
-        name="history/history"
+        name="screens/history"
         options={{
           animation: 'slide_from_right',
         }}
       />
       <Stack.Screen
-        name="full-anime-list"
+        name="screens/anime-list"
         options={({ route }) => ({
           title: "Список аниме", 
           animation: 'slide_from_right',

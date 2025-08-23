@@ -4,11 +4,13 @@ import { WebView } from 'react-native-webview';
 import { useLocalSearchParams } from 'expo-router';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { useTimeStore } from '@/store/time-store';
+import { useThemeStore } from '@/store/theme-store';
 
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+const MAX_RETRIES = 5;
+const RETRY_DELAY = 3000;
 
 export default function PlayerScreen() {
+  const { colors } = useThemeStore();
   const { kodikUrl } = useLocalSearchParams<{ kodikUrl: string }>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -40,7 +42,8 @@ export default function PlayerScreen() {
   }, []);
 
   useEffect(() => {
-    if (error && attempts < MAX_RETRIES) {
+    if (error && attempts <= MAX_RETRIES) {
+      setLoading(true);
       const timer = setTimeout(() => {
         webViewRef.current?.reload();
         setAttempts(attempts + 1);
@@ -62,11 +65,11 @@ export default function PlayerScreen() {
   const handleError = () => setError(true);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       {Platform.OS === 'web' ? (
         <iframe
           src={kodikUrl}
-          style={styles.iframe}
+          style={{ ...styles.iframe, backgroundColor: colors.background }} // добавлено
           allowFullScreen
           onLoad={handleLoad}
         />
@@ -75,7 +78,7 @@ export default function PlayerScreen() {
           <WebView
             ref={webViewRef}
             source={{ uri: kodikUrl }}
-            style={styles.webview}
+            style={[styles.webview, { backgroundColor: colors.background }]}
             onLoad={handleLoad}
             onError={handleError}
             injectedJavaScript={`
@@ -84,17 +87,17 @@ export default function PlayerScreen() {
               }, { passive: false });
             `}
           />
-          {(loading || error) && attempts < MAX_RETRIES && (
-            <View style={styles.overlay}>
-              <ActivityIndicator size="large" color="#fff" />
+          {(error || attempts > MAX_RETRIES) && (
+            <View style={[styles.overlay, { backgroundColor: colors.background }]}>
+              <Text style={[styles.errorText, { color: colors.text }]}>Не удалось загрузить видео</Text>
+            </View>
+          )}
+          {(loading || error) && attempts <= MAX_RETRIES && (
+            <View style={[styles.overlay, { backgroundColor: colors.background }]}>
+              <ActivityIndicator size="large" color={colors.primary} />
             </View>
           )}
         </>
-      )}
-      {error && attempts >= MAX_RETRIES && (
-        <View style={styles.overlay}>
-          <Text style={styles.errorText}>Не удалось загрузить видео</Text>
-        </View>
       )}
     </View>
   );
@@ -103,7 +106,6 @@ export default function PlayerScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
   },
   iframe: {
     width: '100%',
@@ -115,12 +117,10 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorText: {
-    color: '#fff',
     fontSize: 16,
   },
 });

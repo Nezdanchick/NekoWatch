@@ -15,11 +15,6 @@ export default function FavoritesScreen() {
     removeFromFavorites(animeId);
   };
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 500);
-  };
-
   const renderItem = ({ item }: { item: ShikimoriInfo }) => (
     <View style={styles.cardContainer}>
       <AnimeCard 
@@ -37,7 +32,7 @@ export default function FavoritesScreen() {
         </View>
       ) : (
         <FlatList
-          data={favoritesData}
+          data={[...favoritesData].reverse()}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           numColumns={2}
