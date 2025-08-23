@@ -16,7 +16,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (fontError)
-        throw fontError;
+      throw fontError;
     if (fontsLoaded)
       SplashScreen.hideAsync();
   }, [fontError, fontsLoaded]);
@@ -43,7 +43,9 @@ function RootLayoutNav() {
     statusBarStyle: colors.statusBar,
     statusBarBackgroundColor: colors.background,
     statusBarHidden: false,
+
     navigationBarHidden: true,
+    navigationBarTranslucent: true,
   }), [colors]);
 
   return (
@@ -64,17 +66,18 @@ function RootLayoutNav() {
           animation: 'fade',
           presentation: 'fullScreenModal',
         }}
-       />
+      />
       <Stack.Screen
         name="screens/history"
         options={{
+          title: 'История просмотров',
           animation: 'slide_from_right',
         }}
       />
       <Stack.Screen
         name="screens/anime-list"
         options={({ route }) => ({
-          title: "Список аниме", 
+          title: "Список аниме",
           animation: 'slide_from_right',
         })}
       />

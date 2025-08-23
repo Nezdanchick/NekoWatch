@@ -26,11 +26,6 @@ export default function HistoryScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: 'История просмотров',
-        }}
-      />
       {watchHistory.length > 0 ? (
         <>
           <FlatList
@@ -39,7 +34,7 @@ export default function HistoryScreen() {
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={{ paddingTop: 16, paddingBottom: 80 }}
           />
-          <Pressable style={styles.clearButton} onPress={handleClearHistory}>
+          <Pressable style={[styles.clearButton, { backgroundColor: colors.primary }]} onPress={handleClearHistory}>
             <Text style={[styles.clearButtonText, { color: colors.text }]}>Очистить историю</Text>
           </Pressable>
         </>
@@ -74,7 +69,6 @@ const styles = StyleSheet.create({
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(123, 104, 238, 0.95)',
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',

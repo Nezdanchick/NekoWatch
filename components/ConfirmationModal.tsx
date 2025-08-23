@@ -25,8 +25,10 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       transparent={true}
       animationType="fade"
       onRequestClose={onCancel}
+      statusBarTranslucent={true}
+
     >
-      <View style={styles.modalOverlay}>
+      <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0,0,0,0.35)' }]}>
         <View style={[styles.modalContainer, { backgroundColor: colors.background }]}>
           <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.modalMessage, { color: colors.subtext }]}>{message}</Text>
@@ -49,7 +51,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer: {
     width: '80%',
