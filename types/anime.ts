@@ -17,7 +17,7 @@ export interface KodikInfo {
   link: string,
   translation: KodikTranslation,
   screenshots: string[],
-  material_data: KodikMaterialData,
+  material_data?: KodikMaterialData,
 }
 
 export interface ShikimoriInfo {

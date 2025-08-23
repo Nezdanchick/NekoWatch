@@ -65,8 +65,8 @@ export default function AnimeDetailsScreen() {
         let kodikDescription = "";
         let screenshots: string[] = [];
         if (cached.kodik.length > 0 && cached.kodik[0].material_data) {
-          kodikDescription = cached.kodik[0].material_data.description || DESCRIPTION_PLACEHOLDER;
-          screenshots = cached.kodik[0].material_data.screenshots || [];
+          kodikDescription = cached.kodik[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
+          screenshots = cached.kodik[0].material_data?.screenshots || [];
         }
         setKodikScreenshots(screenshots);
         setAnimeDescription(kodikDescription);
@@ -116,8 +116,8 @@ export default function AnimeDetailsScreen() {
         let kodikDescription = "";
         let screenshots: string[] = [];
         if (kodikResults.length > 0 && kodikResults[0].material_data) {
-          kodikDescription = kodikResults[0].material_data.description || DESCRIPTION_PLACEHOLDER;
-          screenshots = kodikResults[0].material_data.screenshots || [];
+          kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
+          screenshots = kodikResults[0].material_data?.screenshots || [];
         }
         setKodikScreenshots(screenshots);
         setAnimeDescription(kodikDescription);
@@ -128,8 +128,8 @@ export default function AnimeDetailsScreen() {
       let kodikDescription = "";
       let screenshots: string[] = [];
       if (kodikResults.length > 0 && kodikResults[0].material_data) {
-        kodikDescription = kodikResults[0].material_data.description || DESCRIPTION_PLACEHOLDER;
-        screenshots = kodikResults[0].material_data.screenshots || [];
+        kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
+        screenshots = kodikResults[0].material_data?.screenshots || [];
       }
       setKodikScreenshots(screenshots);
       setAnimeDescription(kodikDescription);

@@ -22,7 +22,7 @@ export default function AnimeInfo({ shikimori, kodik }: AnimeInfoProps) {
           </Text>
         </View>
 
-        {canShowSeries(shikimori) && (
+        {canShowSeries(shikimori) && kodik?.material_data && (
           <View style={styles.infoItem}>
             <FontAwesome name="video-camera" size={16} color={colors.text} />
             <Text style={[styles.infoText, { color: colors.text }]}>

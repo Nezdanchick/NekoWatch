@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, ActivityIndicator, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { StyleSheet, View, Text, FlatList, ActivityIndicator, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { searchAnime } from '@/services/shikimori-api';
@@ -17,8 +17,8 @@ export default function SearchScreen() {
   const [hasMore, setHasMore] = useState(true);
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const searchBarRef = useRef<TextInput>(null);
-
   const { colors } = useThemeStore();
+
   useFocusEffect(
     React.useCallback(() => {
       const timeout = setTimeout(() => {
@@ -56,11 +56,7 @@ export default function SearchScreen() {
       setLoading(true);
       setError(null);
 
-      if (pageNum === 1) {
-        setSearchResults([]);
-      }
-
-      const results = await searchAnime(debouncedQuery, pageNum);
+      const results = await searchAnime(debouncedQuery, pageNum, 50);
 
       if (results.length === 0) {
         setHasMore(false);
@@ -89,48 +85,44 @@ export default function SearchScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'right', 'left']}>
-        <SearchBar
-          ref={searchBarRef}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Введите название аниме"
-        />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SearchBar
+        ref={searchBarRef}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        placeholder="Введите название аниме"
+      />
 
-        {error ? (
-          <View style={styles.centerContainer}>
-            <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
-          </View>
-        ) : searchResults.length === 0 && !loading ? (
-          <View style={styles.centerContainer}>
-            <Text style={[styles.emptyText, { color: colors.subtext }]}>
-              {debouncedQuery ? 'Ничего не найдено' : '^///^'}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={searchResults.filter(anime => canShow(anime))}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            contentContainerStyle={styles.listContent}
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              loading ? (
-                <View style={styles.footer}>
-                  <ActivityIndicator size="large" color={colors.primary} />
-                </View>
-              ) : null
-            }
-          />
-        )}
-      </SafeAreaView>
-    </KeyboardAvoidingView>
+      {error ? (
+        <View style={styles.centerContainer}>
+          <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
+        </View>
+      ) : searchResults.length === 0 && !loading ? (
+        <View style={styles.centerContainer}>
+          <Text style={[styles.emptyText, { color: colors.subtext }]}>
+            {debouncedQuery ? 'Ничего не найдено' : '^///^'}
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={searchResults.filter(anime => canShow(anime))}
+          renderItem={renderItem}
+          keyExtractor={(item, index) => `${item.id}-${item.name}-${index}`}
+          numColumns={2}
+          contentContainerStyle={styles.listContent}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          updateCellsBatchingPeriod={50}
+          ListFooterComponent={
+            loading ? (
+              <View style={styles.footer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+              </View>
+            ) : null
+          }
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
@@ -139,11 +131,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     paddingBottom: 16,
   },
   cardContainer: {
     width: '50%',
+    alignItems: 'center',
     padding: 4,
   },
   centerContainer: {
