@@ -25,7 +25,7 @@ export default function FavoritesScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {favoritesData.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={[styles.emptyText, { color: colors.subtext }]}>У вас пока нет избранных аниме</Text>

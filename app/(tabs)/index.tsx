@@ -164,7 +164,7 @@ export default function HomeScreen() {
   const opacity = animationValue;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Animated.ScrollView
         onScrollBeginDrag={handleScrollBeginDrag}
         onScrollEndDrag={handleScrollEndDrag}
@@ -176,7 +176,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={[styles.section, { marginTop: '4%' }]}>
+        <View style={styles.section}>
           <AnimeList
             title="Популярное аниме"
             type='popular'

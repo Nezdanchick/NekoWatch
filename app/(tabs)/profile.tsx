@@ -59,7 +59,7 @@ export default function ProfileScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView>
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Ваша активность</Text>
@@ -68,10 +68,10 @@ export default function ProfileScreen() {
 
           {renderMenuItem(
             <MaterialCommunityIcons name="history" size={24} color={colors.primary} />,
-            "История просмотров",
-            "Просмотренные аниме и эпизоды",
-            handleHistoryPress,
-            watchHistory.length
+            watchHistory.length > 0 ? "История просмотров" : "История пуста",
+            watchHistory.length > 0 ? "Просмотренные аниме и эпизоды" : "Вы ещё не смотрели аниме",
+            watchHistory.length > 0 ? handleHistoryPress : () => {},
+            watchHistory.length > 0 ? watchHistory.length : undefined
           )}
         </View>
 
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   section: {
-    marginVertical: 16,
+    marginBottom: 8,
   },
   sectionTitle: {
     fontSize: 18,

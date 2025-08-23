@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, Dimensions } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL} from '@/types/anime';
+import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -168,7 +168,7 @@ export default function AnimeDetailsScreen() {
   if (error || !shikimori) {
     return (
       <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-        <Text style={[styles.errorText, {color: colors.text}]}>{error || 'Ошибка загрузки'}</Text>
+        <Text style={[styles.errorText, { color: colors.text }]}>{error || 'Ошибка загрузки'}</Text>
       </View>
     );
   }
@@ -178,77 +178,84 @@ export default function AnimeDetailsScreen() {
   };
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.card }]}>
-        {kodikScreenshots.length > 0 ? (
-          <>
-            <FlatList
-              data={kodikScreenshots}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item, index) => `${item}-${index}`}
-              onScroll={event => {
-                const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
-                setCurrentScreenshotIndex(index);
-              }}
-              renderItem={({ item }) => (
-                <Image
-                  source={{ uri: item }}
-                  style={[styles.screenshot, { width: screenWidth }]}
-                  resizeMode="cover"
-                />
-              )}
+    <>
+      <Stack.Screen
+        options={{
+          title: 'Информация об аниме',
+        }}
+      />
+      <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
+          {kodikScreenshots.length > 0 ? (
+            <>
+              <FlatList
+                data={kodikScreenshots}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item, index) => `${item}-${index}`}
+                onScroll={event => {
+                  const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+                  setCurrentScreenshotIndex(index);
+                }}
+                renderItem={({ item }) => (
+                  <Image
+                    source={{ uri: item }}
+                    style={[styles.screenshot, { width: screenWidth }]}
+                    resizeMode="cover"
+                  />
+                )}
+              />
+              <View style={styles.overlayIndicatorContainer}>
+                {kodikScreenshots.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      styles.indicator,
+                      currentScreenshotIndex === index
+                        ? styles.activeIndicator
+                        : styles.inactiveIndicator,
+                    ]}
+                  />
+                ))}
+              </View>
+            </>
+          ) : (
+            <Image
+              source={{ uri: imageUrl }}
+              style={styles.poster}
+              resizeMode="cover"
             />
-            <View style={styles.overlayIndicatorContainer}>
-              {kodikScreenshots.map((_, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.indicator,
-                    currentScreenshotIndex === index
-                      ? styles.activeIndicator
-                      : styles.inactiveIndicator,
-                  ]}
-                />
-              ))}
-            </View>
-          </>
-        ) : (
-          <Image
-            source={{ uri: imageUrl }}
-            style={styles.poster}
-            resizeMode="cover"
-          />
-        )}
-      </View>
-
-      <View style={styles.titleContainer}>
-        <Pressable onPress={toggleTitleExpansion}>
-          <Text
-            style={[styles.title, { color: colors.text }]}
-            numberOfLines={isTitleExpanded ? undefined : 2}
-            ellipsizeMode="tail"
-          >
-            {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
-          </Text>
-        </Pressable>
-        <Text style={[styles.originalTitle, { color: colors.subtext }]}>
-          {shikimori?.name || 'Оригинальное название отсутствует'}
-        </Text>
-      </View>
-
-      <AnimeInfo shikimori={shikimori} kodik={kodik[0]} />
-
-      <AnimeButtons shikimori={shikimori} kodik={kodik} />
-
-      {animeDescription && (
-        <View style={styles.descriptionContainer}>
-          <Text style={[styles.descriptionTitle, { color: colors.text }]}>Описание:</Text>
-          <Text style={[styles.descriptionText, { color: colors.subtext }]}>{animeDescription}</Text>
+          )}
         </View>
-      )}
-    </ScrollView>
+
+        <View style={styles.titleContainer}>
+          <Pressable onPress={toggleTitleExpansion}>
+            <Text
+              style={[styles.title, { color: colors.text }]}
+              numberOfLines={isTitleExpanded ? undefined : 2}
+              ellipsizeMode="tail"
+            >
+              {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
+            </Text>
+          </Pressable>
+          <Text style={[styles.originalTitle, { color: colors.subtext }]}>
+            {shikimori?.name || 'Оригинальное название отсутствует'}
+          </Text>
+        </View>
+
+        <AnimeInfo shikimori={shikimori} kodik={kodik[0]} />
+
+        <AnimeButtons shikimori={shikimori} kodik={kodik} />
+
+        {animeDescription && (
+          <View style={styles.descriptionContainer}>
+            <Text style={[styles.descriptionTitle, { color: colors.text }]}>Описание:</Text>
+            <Text style={[styles.descriptionText, { color: colors.subtext }]}>{animeDescription}</Text>
+          </View>
+        )}
+      </ScrollView>
+    </>
   );
 }
 

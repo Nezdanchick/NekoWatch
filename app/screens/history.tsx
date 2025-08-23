@@ -26,23 +26,22 @@ export default function HistoryScreen() {
 
   return (
     <>
+      <Stack.Screen
+        options={{
+          title: watchHistory.length > 0 ? 'История просмотров' : 'История пуста',
+        }}
+      />
+      <FlatList
+        data={watchHistory}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: 80 }}
+      />
       {watchHistory.length > 0 ? (
-        <>
-          <FlatList
-            data={watchHistory}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={{ paddingTop: 16, paddingBottom: 80 }}
-          />
-          <Pressable style={[styles.clearButton, { backgroundColor: colors.primary }]} onPress={handleClearHistory}>
-            <Text style={[styles.clearButtonText, { color: colors.text }]}>Очистить историю</Text>
-          </Pressable>
-        </>
-      ) : (
-        <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
-          <Text style={[styles.emptyText, { color: colors.subtext }]}>История пуста</Text>
-        </View>
-      )}
+        <Pressable style={[styles.clearButton, { backgroundColor: colors.primary }]} onPress={handleClearHistory}>
+          <Text style={[styles.clearButtonText, { color: colors.text }]}>Очистить историю</Text>
+        </Pressable>
+      ) : null}
 
       <ConfirmationModal
         visible={isModalVisible}
@@ -56,14 +55,6 @@ export default function HistoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 18,
-  },
   clearButton: {
     position: 'absolute',
     bottom: 16,

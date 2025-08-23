@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FlatList, StyleSheet, View, ActivityIndicator } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import AnimeCard from '@/components/AnimeCard';
 import { ShikimoriInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
@@ -9,10 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FullAnimeList() {
   const { colors } = useThemeStore();
-  const { type, title } = useLocalSearchParams();
   const [data, setData] = useState<ShikimoriInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
+
+  const params = useLocalSearchParams();
+  const type = params.type as string;
+  const title = params.title as string;
 
   const loadAnimeData = useCallback(async () => {
     setLoading(true);
@@ -44,33 +47,40 @@ export default function FullAnimeList() {
     }
   };
   const renderItem = ({ item }: { item: ShikimoriInfo }) => (
-      <View style={styles.cardContainer}>
-        <AnimeCard 
-          anime={item} 
-        />
-      </View>
-  );
-  
-  return (
-   <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
-      <FlatList
-        data={data.filter(anime => canShow(anime))}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.list]}
-        numColumns={2}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          loading ? (
-            <View style={styles.footer}>
-              <ActivityIndicator color={colors.primary} />
-            </View>
-          ) : null
-        }
+    <View style={styles.cardContainer}>
+      <AnimeCard
+        anime={item}
       />
-    </SafeAreaView>
+    </View>
+  );
+
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: title,
+        }}
+      />
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+        <FlatList
+          data={data.filter(anime => canShow(anime))}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.list]}
+          numColumns={2}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loading ? (
+              <View style={styles.footer}>
+                <ActivityIndicator color={colors.primary} />
+              </View>
+            ) : null
+          }
+        />
+      </SafeAreaView>
+    </>
   );
 }
 
