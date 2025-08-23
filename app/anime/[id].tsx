@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, Dimensions } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
+import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { fetchAnimeDetails } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
 import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL } from '@/types/anime';
@@ -54,7 +54,22 @@ export default function AnimeDetailsScreen() {
   const [isTitleExpanded, setTitleExpanded] = useState(false);
   const [showCached, setShowCached] = useState(false);
 
-  const screenWidth = Dimensions.get('window').width;
+  const { width: screenWidth } = useWindowDimensions();
+  const screenshotsRef = useRef<FlatList>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentScreenshotIndex(0);
+
+      const timeout = setTimeout(() => {
+        if (screenshotsRef.current && kodikScreenshots.length > 0) {
+          screenshotsRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+      }, 100);
+
+      return () => clearTimeout(timeout);
+    }, [kodikScreenshots.length, screenWidth])
+  );
 
   const loadFromCache = useCallback(async () => {
     const cached = await getFromCache(animeId);
@@ -189,6 +204,7 @@ export default function AnimeDetailsScreen() {
           {kodikScreenshots.length > 0 ? (
             <>
               <FlatList
+                ref={screenshotsRef}
                 data={kodikScreenshots}
                 horizontal
                 pagingEnabled
@@ -205,6 +221,13 @@ export default function AnimeDetailsScreen() {
                     resizeMode="cover"
                   />
                 )}
+                initialScrollIndex={0}
+                getItemLayout={(data, index) => ({
+                  length: screenWidth,
+                  offset: screenWidth * index,
+                  index,
+                })}
+                extraData={screenWidth}
               />
               <View style={styles.overlayIndicatorContainer}>
                 {kodikScreenshots.map((_, index) => (
@@ -259,6 +282,7 @@ export default function AnimeDetailsScreen() {
   );
 }
 
+// Стили остаются без изменений
 const styles = StyleSheet.create({
   container: {
     flex: 1,
