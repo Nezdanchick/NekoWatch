@@ -1,5 +1,5 @@
 <span style="display:block;text-align:center">![logo](./assets/images/title.png)</span>
-<span style="display:block;text-align:center">[![telegram](https://img.shields.io/badge/Nezdanchick-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/nezdanchickchannel)</span>
+<span style="display:block;text-align:center">[![telegram](https://img.shields.io/badge/NekoWatch-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/NekoWatch_App)</span>
 
 Приложение для просмотра аниме, разработанное на React Native, позволяет пользователям удобно просматривать любимые тайты с мобильных устройств. Оно предлагает интуитивно понятный интерфейс, быструю загрузку контента и возможность выбора субтитров или дубляжа.
 
