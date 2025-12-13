@@ -1,0 +1,89 @@
+DISCLAIMER AND LIMITATION OF LIABILITY
+
+1. NATURE OF THIS APPLICATION
+
+This application is an open-source software tool distributed under the GNU General Public License v3.0. It functions exclusively as a web content viewer displaying publicly available information from third-party sources through an embedded web browser (WebView). The application does not host, store, download, cache, or distribute any content on its own servers.
+
+2. NO WARRANTIES
+
+THIS APPLICATION IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT ANY WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE APPLICATION IS WITH THE USER. SHOULD THE APPLICATION PROVE DEFECTIVE, THE USER ASSUMES THE COST OF ALL NECESSARY SERVICING, REPAIR, OR CORRECTION.
+
+3. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE ORIGINAL DEVELOPERS, COPYRIGHT HOLDERS, OR ANY CONTRIBUTORS BE LIABLE FOR ANY DAMAGES, INCLUDING BUT NOT LIMITED TO GENERAL, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THIS APPLICATION, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. THIS LIMITATION APPLIES REGARDLESS OF THE FORM OF ACTION AND APPLIES TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW.
+
+4. THIRD-PARTY CONTENT
+
+This application displays content from third-party sources including but not limited to shikimori.one and external video hosting services. The application does not verify, control, curate, or take responsibility for the accuracy, legality, availability, quality, or licensing of any third-party content. The application does not select, recommend, or endorse any specific content.
+
+Users acknowledge that they access all third-party content at their own risk and are solely responsible for determining whether such access complies with applicable laws in their jurisdiction. Users are solely responsible for evaluating and assessing the legality and appropriateness of any content before viewing it.
+
+5. NO RESPONSIBILITY FOR THIRD-PARTY CONTENT
+
+The developers are not responsible for:
+
+a) Copyright infringement, intellectual property violations, or licensing issues related to any content displayed through the application;
+b) Trademark violations or other IP claims regarding third-party materials;
+c) The accuracy, completeness, timeliness, or legality of third-party content;
+d) Availability, reliability, or changes to third-party APIs or services;
+e) Any content that may be considered illegal, inappropriate, offensive, or harmful in any jurisdiction;
+f) Compliance of content with any applicable laws or regulations;
+g) Quality or sources of video materials or metadata;
+h) Loss, corruption, or removal of any content by third-party services.
+
+6. USER RESPONSIBILITY
+
+By using this application, the user acknowledges and agrees that:
+
+a) The user is solely responsible for determining compliance with all applicable laws in their jurisdiction;
+b) The user will not use the application for any unlawful purpose or in violation of any applicable laws;
+c) The user has sole responsibility to evaluate whether content is legal and appropriate to access;
+d) The user voluntarily assumes all risks associated with using this application;
+e) The user will not hold the developers liable for any adverse consequences resulting from their use;
+f) The user understands that as an open-source application with publicly available source code, it can be modified and distributed by others without developer control or oversight;
+g) The developers cannot guarantee uniform filtering, controls, or compliance across all versions, modifications, or forks of the application;
+h) The user irrevocably waives the right to pursue any legal claims, lawsuits, or other legal proceedings against the developers arising from any cause whatsoever related to this application;
+i) By using this application, the user enters into a binding agreement not to seek damages, injunctive relief, or any other remedy through legal action against the developers or contributors.
+
+7. OPEN-SOURCE AND DERIVATIVE WORKS
+
+This application is distributed under the GNU General Public License v3.0. The source code is publicly available and may be freely modified, forked, and redistributed in accordance with the GPL v3.0 license. The original developers are not liable for damages caused by modified versions, derivative works, or forks of the application. Each modifier or distributor of a fork assumes liability for their modifications under the GPL v3.0 terms only.
+
+8. NO CONTROL OVER THIRD-PARTY SERVICES
+
+The developers do not control, operate, or endorse shikimori.one, video hosting services, or any other third-party platforms accessed through this application. The developers have no practical ability to remove, filter, or moderate content from third-party services. Content removal must be requested directly from the content provider or copyright holder.
+
+9. NO ENDORSEMENT
+
+The developers do not endorse, recommend, or accept responsibility for any third-party content, websites, services, or materials accessed through this application.
+
+10. INTELLECTUAL PROPERTY
+
+Anime metadata and information are provided by shikimori.one and remain subject to their terms of service. Video content and all associated intellectual property rights belong to their respective creators and licenseholders. The application source code is distributed under the GNU General Public License v3.0.
+
+If you believe that any content violates your intellectual property rights, contact the original content provider directly.
+
+11. COPYRIGHT NOTICE PROCEDURE
+
+Users who believe content accessed through this application violates copyright law must contact the content provider directly. The developers cannot remove content from third-party services. Copyright claims should be directed to the copyright holder, their legal representatives, or the original content creator.
+
+12. INTERNATIONAL APPLICATION
+
+This disclaimer applies to users worldwide. The application is provided to 
+all users regardless of their jurisdiction. Users are responsible for 
+understanding the laws applicable in their country or region. Where 
+applicable local law prevents enforcement of any provision in this 
+disclaimer, such provision shall be modified to the minimum extent necessary 
+to comply with such local law, or if not possible, severed.
+
+13. MODIFICATION
+
+The developers reserve the right to modify this disclaimer at any time. Continued use constitutes acceptance of modifications.
+
+14. ACKNOWLEDGMENT
+
+YOUR USE OF THIS APPLICATION CONSTITUTES FULL ACCEPTANCE OF THIS DISCLAIMER AND ALL LIABILITY LIMITATIONS CONTAINED HEREIN. IF YOU DO NOT AGREE WITH ANY PART OF THIS DISCLAIMER, DO NOT USE THIS APPLICATION.
+
+Last Updated: 13 December 2025
+Version: 1.0
+License: GNU General Public License v3.0
