@@ -138,3 +138,27 @@ query($search: String!, $page: Int, $limit: Int) {
   const data = await graphqlRequest<{ animes: ShikimoriInfo[] }>(gqlQuery, variables);
   return data?.animes || [];
 }
+
+export async function fetchRelatedAnime(id: number): Promise<ShikimoriInfo[]> {
+  const query = `
+query($ids: String!) {
+  animes(ids: $ids) {
+    related {
+      anime {
+        ${animesQuery}
+      }
+    }
+  }
+}
+`;
+
+  try {
+    const data = await graphqlRequest<{ animes: { related: { anime: ShikimoriInfo | null }[] }[] }>(query, { ids: String(id) });
+    return data?.animes?.[0]?.related
+      ?.map(item => item.anime)
+      .filter((anime): anime is ShikimoriInfo => !!anime) || [];
+  } catch (error) {
+    console.error("Error fetching related anime:", error);
+    return [];
+  }
+}

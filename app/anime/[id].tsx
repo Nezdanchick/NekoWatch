@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, useWindowDimensions } from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { fetchAnimeDetails } from '@/services/shikimori-api';
+import { fetchAnimeDetails, fetchRelatedAnime } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
 import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
@@ -9,6 +9,7 @@ import { theme } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AnimeInfo from '@/components/anime/AnimeInfo';
 import AnimeButtons from '@/components/anime/AnimeButtons';
+import AnimeCard from '@/components/AnimeCard';
 
 const DESCRIPTION_PLACEHOLDER = "Кажется, здесь ничего нет (￣▽￣*)";
 const ANIME_CACHE_KEY = 'kodikCache';
@@ -46,6 +47,7 @@ export default function AnimeDetailsScreen() {
 
   const [shikimori, setShikimori] = useState<ShikimoriInfo | null>(null);
   const [kodik, setKodik] = useState<KodikInfo[]>([]);
+  const [relatedAnime, setRelatedAnime] = useState<ShikimoriInfo[]>([]);
   const [kodikScreenshots, setKodikScreenshots] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +112,7 @@ export default function AnimeDetailsScreen() {
   const loadFromNetwork = useCallback(async (cached: { kodik?: KodikInfo[]; shikimori?: ShikimoriInfo }) => {
     setLoading(true);
     setError(null);
+    setRelatedAnime([]);
 
     let shikimoriResults = cached?.shikimori || null;
     let kodikResults = cached?.kodik || null;
@@ -123,6 +126,10 @@ export default function AnimeDetailsScreen() {
     } else {
       setShikimori(shikimoriResults);
     }
+
+    fetchRelatedAnime(animeId)
+      .then(setRelatedAnime)
+      .catch(err => console.error("Error fetching related anime:", err));
 
     if (!kodikResults) {
       kodikResults = await fetchWithRetry(() => searchKodikByShikimoriId(animeId, true));
@@ -277,6 +284,20 @@ export default function AnimeDetailsScreen() {
             <Text style={[styles.descriptionText, { color: colors.subtext }]}>{animeDescription}</Text>
           </View>
         )}
+
+        {relatedAnime.length > 0 && (
+          <View style={styles.relatedContainer}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Связанное</Text>
+            <FlatList
+              data={relatedAnime}
+              renderItem={({ item }) => <AnimeCard anime={item} size="medium" />}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.relatedList}
+            />
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -375,5 +396,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 4,
-  }
+  },
+  relatedContainer: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  relatedList: {
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
 });
