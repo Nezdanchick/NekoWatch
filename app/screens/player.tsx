@@ -26,21 +26,6 @@ export default function PlayerScreen() {
     };
   }, [startTracking, stopTracking]);
 
-  const lockOrientation = async () => {
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-  };
-
-  const unlockOrientation = async () => {
-    await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-  };
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      lockOrientation();
-      return () => { unlockOrientation(); };
-    }
-  }, []);
-
   useEffect(() => {
     if (error && attempts <= MAX_RETRIES) {
       setLoading(true);

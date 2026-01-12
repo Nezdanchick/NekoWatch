@@ -15,6 +15,7 @@ export interface KodikInfo {
   id: string,
   title: string,
   link: string,
+  kinopoisk_id: string | null,
   translation: KodikTranslation,
   screenshots: string[],
   material_data?: KodikMaterialData,
@@ -30,7 +31,7 @@ export interface ShikimoriInfo {
   kind: string;
   score: number;
   airedOn: {
-    date: Date;
+    date: string;
   };
   franchise: string;
 }
@@ -75,12 +76,23 @@ export interface WatchHistoryItem {
 
 export const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
 
-// tv movie ova ona special music tv_special web
-const HIDE_KINDS = ['music', 'tv_special'];
+// kinds: tv movie ova ona special tv_special web pv music cm
+export const KIND_PRIORITY: Record<string, number> = {
+  'tv': 0,
+  'movie': 1,
+  'ova': 2,
+  'ona': 3,
+  'special': 4,
+  'tv_special': 5,
+  'web': 6,
+  'pv': 7,
+};
+
+const HIDE_KINDS = ['music', 'cm'];
 const SINGLE_KINDS = ['movie', 'special']
 
 export function canShow(anime: ShikimoriInfo) {
-  return !HIDE_KINDS.includes(anime.kind);
+  return !HIDE_KINDS.includes(anime.kind) && anime.kind !== null;
 }
 
 export function canShowSeries(anime: ShikimoriInfo) {

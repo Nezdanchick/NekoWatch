@@ -26,6 +26,7 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <Text style={[styles.title, { color: colors.text }]}>Избранное</Text>
       {favoritesData.length === 0 ? (
         <View style={styles.centerContainer}>
           <Text style={[styles.emptyText, { color: colors.subtext }]}>У вас пока нет избранных аниме</Text>
@@ -47,6 +48,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 16,
@@ -54,13 +61,11 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: '50%',
     alignItems: 'center',
-    padding: 4,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   emptyText: {
     fontSize: 16,

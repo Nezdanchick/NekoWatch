@@ -10,13 +10,6 @@ export default function TabLayout() {
   const screenOptions = React.useMemo(() => ({
     tabBarActiveTintColor: colors.primary,
     tabBarInactiveTintColor: colors.tabIcon,
-    headerStyle: {
-      backgroundColor: colors.background,
-      borderBottomWidth: 0,
-      height: 30,
-      elevation: 0,
-      shadowOpacity: 0,
-    },
     tabBarStyle: {
       backgroundColor: colors.tabBar,
       borderTopColor: "transparent",
@@ -28,7 +21,7 @@ export default function TabLayout() {
     tabBarLabelStyle: {
       fontSize: 12,
     },
-    headerShown: false
+    headerShown: false,
   }), [colors]);
 
   return (

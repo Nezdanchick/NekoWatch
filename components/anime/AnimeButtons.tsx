@@ -16,6 +16,9 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
   const { colors } = useThemeStore();
   const [favorite, setFavorite] = useState(false);
   const [isTranslationsVisible, setTranslationsVisible] = useState(false);
+  const [availablePlayers, setAvailablePlayers] = useState<{ key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[]>([]);
+  const [flixUrl, setFlixUrl] = useState<string | null>(null);
+  const [collapsUrl, setCollapsUrl] = useState<string | null>(null);
   const animationHeight = useRef(new Animated.Value(0)).current;
   const animationInProgress = useRef(false);
   const router = useRouter();
@@ -29,6 +32,78 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
   }, [shikimori, isFavorite]);
 
   useEffect(() => {
+    const kinopoiskId = getKinopoiskId();
+
+    const nextPlayers: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
+
+    if (kodik && kodik.length > 0 && kodik[0]?.link) {
+      nextPlayers.push({ key: 'kodik', title: 'Kodik', link: kodik[0].link });
+    }
+
+    async function checkCollaps() {
+      if (!kinopoiskId) {
+        setCollapsUrl(null);
+        return;
+      }
+      const url = `https://neko-collaps.deno.dev/?kinopoisk_id=${kinopoiskId}`;
+      try {
+        const resp = await fetch(url, { method: 'GET' });
+        if (resp.ok) {
+          setCollapsUrl(url);
+        } else {
+          setCollapsUrl(null);
+        }
+      } catch {
+        setCollapsUrl(null);
+      }
+    }
+
+    async function checkFlix() {
+      if (!kinopoiskId) {
+        setFlixUrl(null);
+        return;
+      }
+      const url = `https://neko-flixcdn.deno.dev/api/search?kinopoisk_id=${kinopoiskId}`;
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) {
+          setFlixUrl(null);
+          return;
+        }
+        const data = await resp.json();
+        const result = Array.isArray(data?.result) ? data.result : [];
+        const iframe = result?.[0]?.iframe_url;
+        if (iframe) {
+          setFlixUrl(iframe);
+        } else {
+          setFlixUrl(null);
+        }
+      } catch {
+        setFlixUrl(null);
+      }
+    }
+
+    checkCollaps();
+    checkFlix();
+
+    setAvailablePlayers(nextPlayers);
+  }, [shikimori?.id, kodik && kodik.length]);
+
+  useEffect(() => {
+    const nextPlayers: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
+    if (kodik && kodik.length > 0 && kodik[0]?.link) {
+      nextPlayers.push({ key: 'kodik', title: 'Kodik', link: kodik[0].link });
+    }
+    if (collapsUrl) {
+      nextPlayers.push({ key: 'collaps', title: 'Collaps', link: collapsUrl });
+    }
+    // if (flixUrl) { // not work
+    //   nextPlayers.push({ key: 'flix', title: 'Flix', link: flixUrl });
+    // }
+    setAvailablePlayers(nextPlayers);
+  }, [collapsUrl, flixUrl, kodik && kodik.length]);
+
+  useEffect(() => {
     if (isTranslationsVisible) {
       Animated.timing(animationHeight, {
         toValue: getTargetHeight(),
@@ -36,7 +111,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
         useNativeDriver: false,
       }).start();
     }
-  }, [kodik.length]);
+  }, [isTranslationsVisible, availablePlayers.length]);
 
   function handleFavorite() {
     if (!shikimori) return;
@@ -60,15 +135,20 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
     });
   };
 
-  const getTargetHeight = () => Array.isArray(kodik) ? kodik.length * (styles.episodeButton.height + 8) : 0;
+  const getTargetHeight = () => Array.isArray(availablePlayers) ? availablePlayers.length * (styles.episodeButton.height + 8) : 0;
 
   const calculateAnimationDuration = () => {
-    const itemsCount = kodik.length;
+    const itemsCount = availablePlayers.length;
     const baseDuration = 100;
     const maxDuration = 750;
     const scaleFactor = 0.15;
     const duration = baseDuration + (maxDuration - baseDuration) * (1 - Math.exp(-scaleFactor * itemsCount));
     return Math.min(duration, maxDuration);
+  };
+
+  const getKinopoiskId = () => {
+    const kp = Array.isArray(kodik) && kodik.length > 0 ? kodik[0]?.kinopoisk_id : null;
+    return kp || null;
   };
 
   const toggleTranslationsVisibility = () => {
@@ -118,14 +198,14 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
         <Pressable
           style={[
             styles.folderButton,
-            kodik.length !== 0
+            availablePlayers.length !== 0
               ? { backgroundColor: colors.card }
               : { backgroundColor: colors.disabled },
           ]}
           onPress={toggleTranslationsVisibility}
-          disabled={!kodik.length}
+          disabled={!availablePlayers.length}
         >
-          {kodik.length ? (
+          {availablePlayers.length ? (
             <MaterialCommunityIcons
               name={isTranslationsVisible ? 'chevron-up' : 'chevron-down'}
               size={20}
@@ -133,10 +213,10 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
             />
           ) : null}
           <Text style={[styles.folderText, { color: colors.text }]}>
-            {kodik.length ? 'Озвучки' : 'Нет доступных озвучек'}
+            {availablePlayers.length ? 'Плееры' : 'Нет доступных плееров'}
           </Text>
         </Pressable>
-        {kodik.length > 0 && (
+        {availablePlayers.some(p => p.key === 'kodik') && (
           <Pressable
             style={({ pressed }) => [
               styles.smallButton,
@@ -163,14 +243,14 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
           },
         ]}
       >
-        {kodik.map((episode: any, index: number) => (
+        {availablePlayers.map((player, index) => (
           <Pressable
-            key={episode?.id || index}
+            key={`${player.key}-${index}`}
             style={[styles.episodeButton, { backgroundColor: colors.card }]}
-            onPress={() => handleWatchPress(episode?.link || '')}
+            onPress={() => handleWatchPress(player.link)}
           >
             <Text style={[styles.episodeText, { color: colors.text }]}>
-              {episode?.translation?.title || 'Без названия'}
+              {player.title}
             </Text>
           </Pressable>
         ))}

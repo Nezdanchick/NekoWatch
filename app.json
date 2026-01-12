@@ -24,16 +24,7 @@
       }
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-navigation-bar",
-        {
-          "position": "absolute",
-          "visibility": "hidden",
-          "behavior": "overlay-swipe",
-          "backgroundColor": "#00000080"
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
@@ -41,12 +32,6 @@
     "extra": {
       "router": {
         "origin": false
-      },
-      "expo-navigation-bar": {
-        "position": "absolute",
-        "visibility": "hidden",
-        "behavior": "overlay-swipe",
-        "backgroundColor": "#00000080"
       },
       "eas": {
         "projectId": "fbc9e325-901d-414f-a91b-34702b7ffca9"

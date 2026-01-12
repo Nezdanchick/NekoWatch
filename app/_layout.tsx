@@ -40,17 +40,25 @@ function RootLayoutNav() {
       elevation: 0,
       shadowOpacity: 0,
     },
+    headerShown: false,
+
     statusBarStyle: colors.statusBar,
     statusBarBackgroundColor: colors.background,
     statusBarHidden: false,
 
-    navigationBarHidden: true,
-    navigationBarTranslucent: true,
+    navigationBarTranslucent: false,
+    navigationBarColor: colors.background,
   }), [colors]);
 
   return (
     <Stack screenOptions={screenOptions}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          navigationBarColor: colors.tabBar,
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name="anime/[id]"
         options={{
@@ -61,10 +69,12 @@ function RootLayoutNav() {
       <Stack.Screen
         name="screens/player"
         options={{
-          headerShown: false,
           statusBarHidden: true,
+          navigationBarHidden: true,
+          navigationBarTranslucent: true,
           animation: 'fade',
           presentation: 'fullScreenModal',
+          orientation: "landscape",
         }}
       />
       <Stack.Screen
@@ -76,10 +86,10 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="screens/anime-list"
-        options={({ route }) => ({
+        options={{
           title: "Список аниме",
           animation: 'slide_from_right',
-        })}
+        }}
       />
     </Stack>
   );

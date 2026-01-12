@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { fetchAnimeDetails, fetchRelatedAnime } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL } from '@/types/anime';
+import { canShow, ShikimoriInfo, KodikInfo, MISSING_POSTER_URL, KIND_PRIORITY } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { theme } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -289,7 +289,13 @@ export default function AnimeDetailsScreen() {
           <View style={styles.relatedContainer}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Связанное</Text>
             <FlatList
-              data={relatedAnime}
+              data={relatedAnime.filter(anime => canShow(anime))
+                .sort((a: ShikimoriInfo, b: ShikimoriInfo) => a.airedOn.date?.localeCompare(b.airedOn.date))
+                .sort((a: ShikimoriInfo, b: ShikimoriInfo) => {
+                  const priorityA = KIND_PRIORITY[a.kind] ?? Number.MAX_SAFE_INTEGER;
+                  const priorityB = KIND_PRIORITY[b.kind] ?? Number.MAX_SAFE_INTEGER;
+                  return priorityA - priorityB;
+                })}
               renderItem={({ item }) => <AnimeCard anime={item} size="medium" />}
               keyExtractor={(item) => item.id.toString()}
               horizontal
@@ -303,7 +309,6 @@ export default function AnimeDetailsScreen() {
   );
 }
 
-// Стили остаются без изменений
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -364,7 +369,6 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     paddingHorizontal: 16,
-    marginBottom: 35,
   },
   descriptionTitle: {
     fontSize: 18,
@@ -403,7 +407,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 12,
+    padding: 16,
   },
   relatedList: {
     paddingLeft: 16,

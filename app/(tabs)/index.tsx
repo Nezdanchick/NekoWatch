@@ -8,7 +8,6 @@ import { ShikimoriInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/history/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
-import * as ScreenOrientation from 'expo-screen-orientation';
 
 const animeCount = 25;
 const CACHE_KEYS = {
@@ -35,12 +34,6 @@ export default function HomeScreen() {
   const { watchHistory } = useAnimeStore();
 
   const animationValue = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    if (Platform.OS !== 'web') {
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-    }
-  }, []);
 
   const getCachedData = async <T,>(key: string): Promise<CacheEntry<T> | null> => {
     try {
@@ -241,10 +234,9 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: '2%',
   },
   section: {
-    marginBottom: 8,
+    marginTop: 8,
   },
   errorContainer: {
     padding: 16,

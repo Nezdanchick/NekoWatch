@@ -8,6 +8,8 @@ import SearchBar from '@/components/SearchBar';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
 
+const minimalQueryLength = 2;
+
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<ShikimoriInfo[]>([]);
@@ -50,7 +52,7 @@ export default function SearchScreen() {
   }, [debouncedQuery]);
 
   const handleSearch = async (pageNum: number) => {
-    if (!debouncedQuery) return;
+    if (!debouncedQuery || debouncedQuery.length < minimalQueryLength) return;
 
     try {
       setLoading(true);
@@ -100,7 +102,9 @@ export default function SearchScreen() {
       ) : searchResults.length === 0 && !loading ? (
         <View style={styles.centerContainer}>
           <Text style={[styles.emptyText, { color: colors.subtext }]}>
-            {debouncedQuery ? 'Ничего не найдено' : '^///^'}
+            {debouncedQuery ?
+              debouncedQuery.length < minimalQueryLength ?
+                `Введите не менее ${minimalQueryLength} символов` : 'Ничего не найдено' : '^///^'}
           </Text>
         </View>
       ) : (
@@ -129,7 +133,6 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: '2%',
   },
   listContent: {
     paddingHorizontal: 16,

@@ -111,7 +111,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: '2%',
   },
   scrollContent: {
     flexGrow: 1,
@@ -124,8 +123,8 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginVertical: 8,
     marginHorizontal: 16,
-    marginBottom: 12,
   },
   menuItem: {
     flexDirection: 'row',

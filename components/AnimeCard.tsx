@@ -113,16 +113,16 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
         <View style={[styles.metaContainer, { backgroundColor: colors.card }]}>
           {anime.kind && (
             <Text style={[styles.meta, { color: colors.primary }]}>
-              {anime.kind && anime.kind.toUpperCase()}
+              {anime.kind && anime.kind.replaceAll('_', ' ').toUpperCase()}
             </Text>
           )}
           {anime.airedOn.date && (
             <Text style={[styles.date, { color: colors.subtext }]}>
-              {anime.airedOn.date.toString()}
+              {anime.airedOn.date}
             </Text>
           )}
           <Text style={[styles.score, { color: colors.primary }]}>
-            {anime.score !== 0 ? anime.score.toString() : '-'}
+            {anime.score !== 0 ? anime.score.toFixed(1).toString() : '-'}
           </Text>
         </View>
         <Pressable
@@ -232,11 +232,11 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   meta: {
-    fontSize: 11,
+    fontSize: 9,
     flexShrink: 1,
   },
   date: {
-    fontSize: 10,
+    fontSize: 9,
     flexShrink: 1,
   },
   score: {
