@@ -4,7 +4,7 @@
 # sudo npm install -g bun eas-cli expo-cli
 
 # Профиль сборки APK
-default_profile="development"
+default_profile="development" # preview, development, production
 if [ -n "$1" ]; then
   profile="$1"
 else

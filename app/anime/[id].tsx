@@ -14,6 +14,10 @@ import AnimeCard from '@/components/AnimeCard';
 const DESCRIPTION_PLACEHOLDER = "Кажется, здесь ничего нет (￣▽￣*)";
 const ANIME_CACHE_KEY = 'kodikCache';
 
+function normalizeScreenshotUrl(url: string): string { // shikimori screenshot fix
+  return url.replace(/https?:\/\/(nyaa|dere)\.shikimori\.one/g, 'https://shikimori.one');
+}
+
 async function getFromCache(animeId: number) {
   const cacheStr = await AsyncStorage.getItem(ANIME_CACHE_KEY);
   if (!cacheStr) return null;
@@ -83,7 +87,7 @@ export default function AnimeDetailsScreen() {
         let screenshots: string[] = [];
         if (cached.kodik.length > 0 && cached.kodik[0].material_data) {
           kodikDescription = cached.kodik[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
-          screenshots = cached.kodik[0].material_data?.screenshots || [];
+          screenshots = (cached.kodik[0].material_data?.screenshots || []).map(normalizeScreenshotUrl);
         }
         setKodikScreenshots(screenshots);
         setAnimeDescription(kodikDescription);
@@ -139,7 +143,7 @@ export default function AnimeDetailsScreen() {
         let screenshots: string[] = [];
         if (kodikResults.length > 0 && kodikResults[0].material_data) {
           kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
-          screenshots = kodikResults[0].material_data?.screenshots || [];
+          screenshots = (kodikResults[0].material_data?.screenshots || []).map(normalizeScreenshotUrl);
         }
         setKodikScreenshots(screenshots);
         setAnimeDescription(kodikDescription);
@@ -151,7 +155,7 @@ export default function AnimeDetailsScreen() {
       let screenshots: string[] = [];
       if (kodikResults.length > 0 && kodikResults[0].material_data) {
         kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
-        screenshots = kodikResults[0].material_data?.screenshots || [];
+        screenshots = (kodikResults[0].material_data?.screenshots || []).map(normalizeScreenshotUrl);
       }
       setKodikScreenshots(screenshots);
       setAnimeDescription(kodikDescription);
@@ -378,6 +382,7 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 14,
     lineHeight: 20,
+    marginBottom: 24,
   },
   indicatorContainer: {
     flexDirection: 'row',
