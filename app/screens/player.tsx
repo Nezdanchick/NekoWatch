@@ -1,22 +1,29 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StyleSheet, View, Text, Platform, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useLocalSearchParams } from 'expo-router';
-import * as ScreenOrientation from 'expo-screen-orientation';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useTimeStore } from '@/store/time-store';
 import { useThemeStore } from '@/store/theme-store';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MAX_RETRIES = 5;
 const RETRY_DELAY = 3000;
 
 export default function PlayerScreen() {
   const { colors } = useThemeStore();
+  const insets = useSafeAreaInsets();
   const { kodikUrl } = useLocalSearchParams<{ kodikUrl: string }>();
+
+
+  const horizontalPadding = Math.max(insets.left, insets.right);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const webViewRef = useRef<WebView>(null);
   const { startTracking, stopTracking } = useTimeStore();
+
 
   useEffect(() => {
     startTracking();
@@ -50,11 +57,21 @@ export default function PlayerScreen() {
   const handleError = () => setError(true);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: 'black',
+          paddingLeft: horizontalPadding,
+          paddingRight: horizontalPadding, 
+        }
+      ]}
+    >
+      <StatusBar hidden translucent backgroundColor="transparent" />
       {Platform.OS === 'web' ? (
         <iframe
           src={kodikUrl}
-          style={{ ...styles.iframe, backgroundColor: colors.background }} // добавлено
+          style={{ ...styles.iframe, backgroundColor: 'black' }} // добавлено
           allowFullScreen
           onLoad={handleLoad}
         />
@@ -63,7 +80,7 @@ export default function PlayerScreen() {
           <WebView
             ref={webViewRef}
             source={{ uri: kodikUrl }}
-            style={[styles.webview, { backgroundColor: colors.background }]}
+            style={[styles.webview, { backgroundColor: 'black' }]}
             onLoad={handleLoad}
             onError={handleError}
             injectedJavaScript={`
@@ -73,12 +90,12 @@ export default function PlayerScreen() {
             `}
           />
           {(error || attempts > MAX_RETRIES) && (
-            <View style={[styles.overlay, { backgroundColor: colors.background }]}>
+            <View style={[styles.overlay, { backgroundColor: 'black' }]}>
               <Text style={[styles.errorText, { color: colors.text }]}>Не удалось загрузить видео</Text>
             </View>
           )}
           {(loading || error) && attempts <= MAX_RETRIES && (
-            <View style={[styles.overlay, { backgroundColor: colors.background }]}>
+            <View style={[styles.overlay, { backgroundColor: 'black' }]}>
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           )}
