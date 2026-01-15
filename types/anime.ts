@@ -1,4 +1,4 @@
-export interface KodikTranslation {
+﻿export interface KodikTranslation {
   title: string,
 }
 
@@ -76,7 +76,6 @@ export interface WatchHistoryItem {
 
 export const MISSING_POSTER_URL = 'https://shikimori.one/assets/globals/missing_preview.jpg';
 
-// kinds: tv movie ova ona special tv_special web pv music cm
 export const KIND_PRIORITY: Record<string, number> = {
   'tv': 0,
   'movie': 1,
@@ -102,3 +101,21 @@ export function canShowSeries(anime: ShikimoriInfo) {
 export function canOpen(anime: ShikimoriInfo) {
   return anime.score !== 0;
 }
+
+export type AnimeStatus = 'watching' | 'planned' | 'completed' | 'on_hold' | 'dropped';
+
+export const STATUS_COLORS: Record<AnimeStatus, string> = {
+  watching: '#4CAF50', 
+  planned: '#2196F3', 
+  completed: '#9C27B0', 
+  on_hold: '#FF9800', 
+  dropped: '#F44336', 
+};
+
+export const STATUS_LABELS: Record<AnimeStatus, string> = {
+  watching: 'Смотрю',
+  planned: 'В планах',
+  completed: 'Просмотрено',
+  on_hold: 'Отложено',
+  dropped: 'Брошено',
+};

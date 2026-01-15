@@ -1,12 +1,18 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ShikimoriInfo, WatchHistoryItem } from '@/types/anime';
+import { ShikimoriInfo, WatchHistoryItem, AnimeStatus } from '@/types/anime';
 
 interface AnimeState {
-  favorites: number[];
-  favoritesData: ShikimoriInfo[];
   watchHistory: WatchHistoryItem[];
+  bookmarks: Record<number, AnimeStatus>;
+  bookmarksData: Record<number, ShikimoriInfo>;
+  
+  favoritesData: ShikimoriInfo[]; 
+
+  setAnimeStatus: (anime: ShikimoriInfo, status: AnimeStatus | null) => void;
+  getAnimeStatus: (animeId: number) => AnimeStatus | null;
+  getAnimesByStatus: (status: AnimeStatus) => ShikimoriInfo[];
 
   addToFavorites: (anime: ShikimoriInfo) => void;
   removeFromFavorites: (animeId: number) => void;
@@ -19,27 +25,45 @@ interface AnimeState {
 export const useAnimeStore = create<AnimeState>()(
   persist(
     (set, get) => ({
-      favorites: [],
-      favoritesData: [],
       watchHistory: [],
+      bookmarks: {},
+      bookmarksData: {},
+      favoritesData: [], 
 
-      addToFavorites: (anime: ShikimoriInfo) =>
-        set((state) => ({
-          favorites: [...new Set([...state.favorites, anime.id])],
-          favoritesData: [...state.favoritesData, anime].filter(
-            (item, index, self) =>
-              index === self.findIndex((t) => t.id === item.id)
-          )
-        })),
+      setAnimeStatus: (anime: ShikimoriInfo, status: AnimeStatus | null) =>
+        set((state) => {
+          const newBookmarks = { ...state.bookmarks };
+          const newBookmarksData = { ...state.bookmarksData };
 
-      removeFromFavorites: (animeId: number) =>
-        set((state) => ({
-          favorites: state.favorites.filter(id => id !== animeId),
-          favoritesData: state.favoritesData.filter(item => item.id !== animeId)
-        })),
+          if (status === null) {
+            delete newBookmarks[anime.id];
+            delete newBookmarksData[anime.id];
+          } else {
+            newBookmarks[anime.id] = status;
+            newBookmarksData[anime.id] = anime;
+          }
+          
+          const favoritesData = Object.values(newBookmarksData);
 
-      isFavorite: (animeId: number) =>
-        get().favorites.includes(animeId),
+          return { bookmarks: newBookmarks, bookmarksData: newBookmarksData, favoritesData };
+        }),
+
+      getAnimeStatus: (animeId: number) => get().bookmarks[animeId] || null,
+
+      getAnimesByStatus: (status: AnimeStatus) => {
+        const { bookmarks, bookmarksData } = get();
+        return Object.entries(bookmarks)
+          .filter(([_, s]) => s === status)
+          .map(([id, _]) => bookmarksData[parseInt(id)])
+          .filter(Boolean);
+      },
+
+      addToFavorites: (anime) => get().setAnimeStatus(anime, 'planned'),
+      removeFromFavorites: (animeId) => {
+        const anime = get().bookmarksData[animeId];
+        if (anime) get().setAnimeStatus(anime, null);
+      },
+      isFavorite: (animeId) => !!get().bookmarks[animeId],
 
       addToWatchHistory: (animeId: number, title: string, image: string, link?: string) =>
         set((state) => {
