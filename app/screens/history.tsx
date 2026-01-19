@@ -5,6 +5,7 @@ import WatchHistoryItem from '@/components/history/WatchHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 import { Stack } from 'expo-router';
 import ConfirmationModal from '@/components/ConfirmationModal';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HistoryScreen() {
   const { colors } = useThemeStore();
@@ -25,7 +26,7 @@ export default function HistoryScreen() {
   };
 
   return (
-    <>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen
         options={{
           title: watchHistory.length > 0 ? 'История просмотров' : 'История пуста',
@@ -50,11 +51,15 @@ export default function HistoryScreen() {
         onCancel={() => setModalVisible(false)}
         onConfirm={confirmClearHistory}
       />
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
   clearButton: {
     position: 'absolute',
     bottom: 16,

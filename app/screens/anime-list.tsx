@@ -61,7 +61,7 @@ export default function FullAnimeList() {
           title: title,
         }}
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['right', 'left']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
         <FlatList
           data={data.filter(anime => canShow(anime))}
           renderItem={renderItem}
