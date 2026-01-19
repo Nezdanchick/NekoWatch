@@ -46,7 +46,7 @@ function RootLayoutNav() {
     statusBarBackgroundColor: colors.background,
     statusBarHidden: false,
 
-    navigationBarTranslucent: true,
+    navigationBarTranslucent: false,
     navigationBarColor: colors.background,
   }), [colors]);
 
