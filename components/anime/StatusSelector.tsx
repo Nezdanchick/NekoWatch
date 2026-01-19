@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableWithoutFeedback } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableWithoutFeedback, Animated, PanResponder } from 'react-native';
 import { AnimeStatus, STATUS_COLORS, STATUS_LABELS, ShikimoriInfo } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,13 +7,63 @@ import { useThemeStore } from '@/store/theme-store';
 
 interface StatusSelectorProps {
   anime: ShikimoriInfo;
+  visible?: boolean;
+  onClose?: () => void;
 }
 
-export default function StatusSelector({ anime }: StatusSelectorProps) {
+export default function StatusSelector({ anime, visible: externalVisible, onClose }: StatusSelectorProps) {
   const { colors } = useThemeStore();
   const { setAnimeStatus, getAnimeStatus } = useAnimeStore();
   const currentStatus = getAnimeStatus(anime.id);
-  const [visible, setVisible] = useState(false);
+  const [internalVisible, setInternalVisible] = useState(false);
+  
+  const visible = externalVisible !== undefined ? externalVisible : internalVisible;
+  const setVisible = onClose ? onClose : setInternalVisible;
+
+  const panY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (visible) {
+      panY.setValue(0);
+    }
+  }, [visible]);
+
+  const handleModalClose = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      setInternalVisible(false);
+    }
+  }
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return Math.abs(gestureState.dy) > 10;
+      },
+      onPanResponderMove: Animated.event(
+        [null, { dy: panY }],
+        { useNativeDriver: false }
+      ),
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 80) {
+           handleModalClose();
+        } else {
+           Animated.spring(panY, {
+             toValue: 0,
+             useNativeDriver: false
+           }).start();
+        }
+      }
+    })
+  ).current;
+
+  const translateY = panY.interpolate({
+    inputRange: [-200, 0],
+    outputRange: [0, 0],
+    extrapolateRight: 'identity'
+  });
 
   const statuses: AnimeStatus[] = ['watching', 'planned', 'completed', 'on_hold', 'dropped'];
 
@@ -23,12 +73,18 @@ export default function StatusSelector({ anime }: StatusSelectorProps) {
     } else {
         setAnimeStatus(anime, status);
     }
-    setVisible(false);
+    handleModalClose();
   };
 
   const handleRemove = () => {
       setAnimeStatus(anime, null);
-      setVisible(false);
+      handleModalClose();
+  }
+
+  const handleOpen = () => {
+    if (!onClose) {
+      setInternalVisible(true);
+    }
   }
 
   const activeColor = currentStatus ? STATUS_COLORS[currentStatus] : colors.text;
@@ -36,42 +92,56 @@ export default function StatusSelector({ anime }: StatusSelectorProps) {
   
   return (
     <>
-      <Pressable 
-        style={[
-            styles.button, 
-            { 
-                backgroundColor: currentStatus ? (colors.card) : colors.primary,
-                borderWidth: currentStatus ? 2 : 0,
-                borderColor: currentStatus ? activeColor : 'transparent'
-            }
-        ]} 
-        onPress={() => setVisible(true)}
-      >
-          <MaterialCommunityIcons 
-            name={currentStatus ? "bookmark-check" : "bookmark-plus-outline"} 
-            size={22} 
-            color={currentStatus ? activeColor : '#fff'} 
-          />
-          <Text style={[styles.buttonText, { color: currentStatus ? activeColor : '#fff' }]}>
-            {activeLabel}
-          </Text>
-      </Pressable>
+      {!onClose && (
+        <Pressable 
+          style={[
+              styles.button, 
+              { 
+                  backgroundColor: currentStatus ? (colors.card) : colors.primary,
+                  borderWidth: currentStatus ? 2 : 0,
+                  borderColor: currentStatus ? activeColor : 'transparent'
+              }
+          ]} 
+          onPress={handleOpen}
+        >
+            <MaterialCommunityIcons 
+              name={currentStatus ? "bookmark-check" : "bookmark-plus-outline"} 
+              size={22} 
+              color={currentStatus ? activeColor : '#fff'} 
+            />
+            <Text style={[styles.buttonText, { color: currentStatus ? activeColor : '#fff' }]}>
+              {activeLabel}
+            </Text>
+        </Pressable>
+      )}
 
       <Modal
         visible={visible}
         transparent
         animationType="slide"
-        onRequestClose={() => setVisible(false)}
+        onRequestClose={handleModalClose}
       >
-        <TouchableWithoutFeedback onPress={() => setVisible(false)}>
+        <TouchableWithoutFeedback onPress={handleModalClose}>
             <View style={styles.modalOverlay}>
                 <TouchableWithoutFeedback>
-                    <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
-                        <View style={styles.dragHandleContainer}>
+                    <Animated.View style={[
+                        styles.modalContent, 
+                        { 
+                            backgroundColor: colors.card,
+                            transform: [{ translateY }]
+                        }
+                    ]}>
+                        <View {...panResponder.panHandlers} style={[styles.dragHandleContainer, { paddingVertical: 10 }]}>
                             <View style={[styles.dragHandle, { backgroundColor: colors.border }]} />
                         </View>
                         <View style={styles.modalHeader}>
-                             <Text style={[styles.modalTitle, { color: colors.text }]}>Статус просмотра</Text>
+                             <Text 
+                               style={[styles.modalTitle, { color: colors.text }]}
+                               numberOfLines={1}
+                               ellipsizeMode="tail"
+                             >
+                               {anime.russian || anime.name || 'Без названия'}
+                             </Text>
                         </View>
                         
                         {statuses.map((status) => (
@@ -99,7 +169,7 @@ export default function StatusSelector({ anime }: StatusSelectorProps) {
                               <MaterialCommunityIcons name="delete-outline" size={24} color={colors.subtext} />
                               <Text style={[styles.optionText, { color: colors.subtext }]}>Убрать из списка</Text>
                          </Pressable>
-                    </View>
+                    </Animated.View>
                 </TouchableWithoutFeedback>
             </View>
         </TouchableWithoutFeedback>
@@ -115,7 +185,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       paddingVertical: 10,
       paddingHorizontal: 20,
-      borderRadius: 24, 
+      borderRadius: 12, 
       gap: 12,
       minWidth: 140,
       elevation: 2,
@@ -127,7 +197,6 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.6)',
       justifyContent: 'flex-end',
   },
   modalContent: {

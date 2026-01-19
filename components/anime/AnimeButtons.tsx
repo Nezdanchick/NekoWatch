@@ -47,7 +47,6 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
     setAvailablePlayers(nextPlayers);
   }, [shikimori?.id, kodik]);
 
-  // Update players list when async checks finish
   useEffect(() => {
     const nextPlayers: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
     if (kodik && kodik.length > 0 && kodik[0]?.link) {
@@ -81,7 +80,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
     });
   };
 
-  const getTargetHeight = () => availablePlayers.length * 60; 
+  const getTargetHeight = () => availablePlayers.length * 56; 
 
   const toggleTranslationsVisibility = () => {
     if (animationInProgress.current) return;
@@ -135,7 +134,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
           disabled={!availablePlayers.length}
         >
            <Text style={[styles.dropdownText, { color: colors.text }]}>
-            {availablePlayers.length ? `Доступно плееров: ${availablePlayers.length}` : 'Нет доступных плееров'}
+            {availablePlayers.length ? `Плееры` : 'Нет доступных плееров'}
           </Text>
           {availablePlayers.length > 0 && (
             <MaterialCommunityIcons
@@ -157,10 +156,13 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
         {availablePlayers.map((player, index) => (
           <Pressable
             key={`${player.key}-${index}`}
-            style={[styles.playerOption, { backgroundColor: colors.card, borderTopColor: colors.border }]}
+            style={[
+              styles.playerOption,
+              { backgroundColor: colors.card },
+              index > 0 && { borderTopWidth: 1, borderTopColor: colors.background}
+            ]}
             onPress={() => handleWatchPress(player.link)}
           >
-             <MaterialCommunityIcons name="television-play" size={20} color={colors.primary} style={{marginRight: 12}} />
             <Text style={[styles.playerText, { color: colors.text }]}>
               {player.title}
             </Text>
@@ -174,8 +176,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    paddingTop: 0,
+    paddingHorizontal: 16,
   },
   primaryActions: {
       flexDirection: 'row',
@@ -193,9 +194,10 @@ const styles = StyleSheet.create({
   dropdownButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
+    justifyContent: 'center',
+    height: 56,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     marginBottom: 8,
   },
   dropdownText: {
@@ -204,13 +206,13 @@ const styles = StyleSheet.create({
   },
   animatedList: {
     overflow: 'hidden',
-    borderRadius: 12,
+    borderRadius: 16,
   },
   playerOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderTopWidth: 1,
+    height: 56,
+    paddingHorizontal: 16,
   },
   playerText: {
     fontSize: 16,

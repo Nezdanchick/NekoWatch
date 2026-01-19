@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, useWindowDimensions, StatusBar } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef} from 'react';
+import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, useWindowDimensions, StatusBar, Animated} from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { fetchAnimeDetails, fetchRelatedAnime } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
-import { canShow, ShikimoriInfo, KodikInfo, MISSING_POSTER_URL, KIND_PRIORITY } from '@/types/anime';
+import { canShow, ShikimoriInfo, KodikInfo, MISSING_POSTER_URL, KIND_PRIORITY, canShowSeries} from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
-import { theme } from '@/constants/theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import AnimeInfo from '@/components/anime/AnimeInfo';
 import AnimeButtons from '@/components/anime/AnimeButtons';
 import AnimeCard from '@/components/AnimeCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -62,9 +60,12 @@ export default function AnimeDetailsScreen() {
   const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0);
   const [isTitleExpanded, setTitleExpanded] = useState(false);
   const [showCached, setShowCached] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
 
   const { width: screenWidth } = useWindowDimensions();
   const screenshotsRef = useRef<FlatList>(null);
+  const mainScrollRef = useRef<ScrollView>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
   useFocusEffect(
     useCallback(() => {
@@ -155,8 +156,8 @@ export default function AnimeDetailsScreen() {
       let kodikDescription = "";
       let screenshots: string[] = [];
       if (kodikResults.length > 0 && kodikResults[0].material_data) {
-          kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
-          screenshots = (kodikResults[0].material_data?.screenshots || []).map(normalizeScreenshotUrl);
+        kodikDescription = kodikResults[0].material_data?.description || DESCRIPTION_PLACEHOLDER;
+        screenshots = (kodikResults[0].material_data?.screenshots || []).map(normalizeScreenshotUrl);
       }
       setKodikScreenshots(screenshots);
       setAnimeDescription(kodikDescription);
@@ -207,140 +208,200 @@ export default function AnimeDetailsScreen() {
           headerShown: false,
         }}
       />
-      <StatusBar translucent backgroundColor="transparent" barStyle="light-content" />
-      <ScrollView 
+      <ScrollView
+        ref={mainScrollRef}
         style={[styles.container, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
+        scrollEnabled={!isScrolling}
       >
         <View style={styles.headerContainer}>
-            {kodikScreenshots.length > 0 ? (
-                <FlatList
-                    ref={screenshotsRef}
-                    data={kodikScreenshots}
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(item, index) => `${item}-${index}`}
-                    onScroll={event => {
-                        const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
-                        setCurrentScreenshotIndex(index);
-                    }}
-                    renderItem={({ item }) => (
-                        <View style={{ width: screenWidth, height: 400 }}>
-                           <Image
-                            source={{ uri: item }}
-                            style={{ width: '100%', height: '100%' }}
-                            resizeMode="cover"
-                           />
-                           <LinearGradient
-                             colors={['transparent', colors.background]}
-                             style={StyleSheet.absoluteFillObject}
-                             start={{ x: 0, y: 0.5 }}
-                             end={{ x: 0, y: 1 }}
-                           />
-                        </View>
-                    )}
-                    initialScrollIndex={0}
-                    getItemLayout={(data, index) => ({
-                        length: screenWidth,
-                        offset: screenWidth * index,
-                        index,
-                    })}
-                />
-            ) : (
+          {kodikScreenshots.length > 0 ? (
+            <FlatList
+              ref={screenshotsRef}
+              data={kodikScreenshots}
+              horizontal
+              pagingEnabled
+              snapToInterval={screenWidth}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              disableIntervalMomentum={true}
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              onScrollBeginDrag={() => setIsScrolling(true)}
+              onMomentumScrollBegin={() => setIsScrolling(true)}
+              onMomentumScrollEnd={(event) => {
+                const offsetX = event.nativeEvent.contentOffset.x;
+                const index = Math.round(offsetX / screenWidth);
+                const targetOffset = index * screenWidth;
+                
+                if (Math.abs(offsetX - targetOffset) > 1) {
+                  screenshotsRef.current?.scrollToOffset({
+                    offset: targetOffset,
+                    animated: true,
+                  });
+                }
+                setCurrentScreenshotIndex(index);
+                setTimeout(() => setIsScrolling(false), 300);
+              }}
+              onScrollEndDrag={() => {
+                setTimeout(() => setIsScrolling(false), 300);
+              }}
+              onScroll={Animated.event(
+                [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+                {
+                  useNativeDriver: false,
+                  listener: (event: any) => {
+                    const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
+                    setCurrentScreenshotIndex(index);
+                  },
+                }
+              )}
+              renderItem={({ item }) => (
                 <View style={{ width: screenWidth, height: 400 }}>
-                    <Image
-                        source={{ uri: imageUrl }}
-                        style={{ width: '100%', height: '100%' }}
-                        resizeMode="cover"
-                    />
-                     <LinearGradient
-                             colors={['transparent', colors.background]}
-                             style={StyleSheet.absoluteFillObject}
-                             start={{ x: 0, y: 0.5 }}
-                             end={{ x: 0, y: 1 }}
-                           />
+                  <Image
+                    source={{ uri: item }}
+                    style={{ width: '100%', height: '100%' }}
+                    resizeMode="cover"
+                  />
+                  <LinearGradient
+                    colors={['transparent', colors.background]}
+                    style={StyleSheet.absoluteFillObject}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 0, y: 1 }}
+                  />
                 </View>
-            )}
+              )}
+              initialScrollIndex={0}
+              getItemLayout={(data, index) => ({
+                length: screenWidth,
+                offset: screenWidth * index,
+                index,
+              })}
+            />
+          ) : (
+            <View style={{ width: screenWidth, height: 400 }}>
+              <Image
+                source={{ uri: imageUrl }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="cover"
+              />
+              <LinearGradient
+                colors={['transparent', colors.background]}
+                style={StyleSheet.absoluteFillObject}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 0, y: 1 }}
+              />
+            </View>
+          )}
 
-             {kodikScreenshots.length > 1 && (
-                <View style={styles.indicatorContainer}>
-                    {kodikScreenshots.map((_, index) => (
-                    <View
-                        key={index}
-                        style={[
-                        styles.indicator,
-                        currentScreenshotIndex === index
-                            ? { backgroundColor: colors.primary, width: 24 }
-                            : { backgroundColor: 'rgba(255,255,255,0.5)', width: 8 },
-                        ]}
-                    />
-                    ))}
-                </View>
-            )}
+          {kodikScreenshots.length > 1 && (
+            <View style={styles.indicatorContainer}>
+              {kodikScreenshots.map((_, index) => {
+                const inputRange = [
+                  (index - 1) * screenWidth,
+                  index * screenWidth,
+                  (index + 1) * screenWidth,
+                ];
 
-            <Pressable style={styles.backButton} onPress={() => router.back()}>
-                 <View style={styles.iconBackdrop}>
-                     <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-                 </View>
-            </Pressable>
+                const width = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 24, 8],
+                  extrapolate: 'clamp',
+                });
+
+                const opacity = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [0.5, 1, 0.5],
+                  extrapolate: 'clamp',
+                });
+
+                return (
+                  <Animated.View
+                    key={index}
+                    style={[
+                      styles.indicator,
+                      {
+                        width,
+                        opacity,
+                        backgroundColor: currentScreenshotIndex === index
+                          ? colors.primary
+                          : 'rgba(255,255,255,0.5)',
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
+          )}
+
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <View style={styles.iconBackdrop}>
+              <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+            </View>
+          </Pressable>
         </View>
 
         <View style={styles.contentContainer}>
-             <View style={styles.titleSection}>
-                <Pressable onPress={() => setTitleExpanded(!isTitleExpanded)}>
-                    <Text
-                    style={[styles.title, { color: colors.text }]}
-                    numberOfLines={isTitleExpanded ? undefined : 2}
-                    >
-                    {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
-                    </Text>
-                </Pressable>
-                <Text style={[styles.originalTitle, { color: colors.subtext }]}>
-                    {shikimori?.name || ''}
-                </Text>
-            
-                <View style={styles.metaInfo}>
-                     <View style={[styles.badget, { backgroundColor: colors.card }]}>
-                        <MaterialCommunityIcons name="star" size={14} color="#FFD700" style={{marginRight: 4}} />
-                        <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.score}</Text>
-                     </View>
-                     <View style={[styles.badget, { backgroundColor: colors.card }]}>
-                         <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.kind.toUpperCase()}</Text>
-                     </View>
-                     <View style={[styles.badget, { backgroundColor: colors.card }]}>
-                         <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.airedOn?.date?.split('-')[0] || '?'}</Text>
-                     </View>
+          <View style={styles.titleSection}>
+            <Pressable onPress={() => setTitleExpanded(!isTitleExpanded)}>
+              <Text
+                style={[styles.title, { color: colors.text }]}
+                numberOfLines={isTitleExpanded ? undefined : 2}
+              >
+                {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
+              </Text>
+            </Pressable>
+            <Text style={[styles.originalTitle, { color: colors.subtext }]}>
+              {shikimori?.name || ''}
+            </Text>
+
+            <View style={styles.metaInfo}>
+              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+                <MaterialCommunityIcons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
+                <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.score.toFixed(1).toString()}</Text>
+              </View>
+              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+                <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.kind.toUpperCase()}</Text>
+              </View>
+              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+                <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.airedOn?.date || ''}</Text>
+              </View>
+              {canShowSeries(shikimori) && kodik[0]?.material_data && (
+                <View style={[styles.badget, { backgroundColor: colors.card }]}>
+                  <Text style={[styles.badgetText, { color: colors.text }]}>
+                    {`${kodik[0].material_data.episodes_aired || '?'}/${kodik[0].material_data.episodes_total || '?'}`}
+                  </Text>
                 </View>
-             </View>
+              )}
+            </View>
+          </View>
 
-             <AnimeButtons shikimori={shikimori} kodik={kodik} />
+          <AnimeButtons shikimori={shikimori} kodik={kodik} />
 
-             {animeDescription && (
-                <View style={[styles.section, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.sectionHeader, { color: colors.text }]}>Описание</Text>
-                    <Text style={[styles.descriptionText, { color: colors.subtext }]}>
-                        {animeDescription}
-                    </Text>
-                </View>
-             )}
+          {animeDescription && (
+            <View style={[styles.section, { backgroundColor: colors.card }]}>
+              <Text style={[styles.sectionHeader, { color: colors.text }]}>Описание</Text>
+              <Text style={[styles.descriptionText, { color: colors.subtext }]}>
+                {animeDescription}
+              </Text>
+            </View>
+          )}
 
-            {relatedAnime.length > 0 && (
-            <View style={styles.section}>
-                <Text style={[styles.sectionHeader, { color: colors.text, marginBottom: 16, marginLeft: 4 }]}>Связанное</Text>
-                <FlatList
+          {relatedAnime.length > 0 && (
+            <View style={[styles.section, { backgroundColor: colors.card }]}>
+              <Text style={[styles.sectionHeader, { color: colors.text, marginBottom: 16, marginLeft: 4 }]}>Связанное</Text>
+              <FlatList
                 data={relatedAnime.filter(anime => canShow(anime))
-                    .sort((a, b) => (KIND_PRIORITY[a.kind] ?? 99) - (KIND_PRIORITY[b.kind] ?? 99))}
+                  .sort((a, b) => (KIND_PRIORITY[a.kind] ?? 99) - (KIND_PRIORITY[b.kind] ?? 99))}
                 renderItem={({ item }) => <AnimeCard anime={item} size="medium" />}
                 keyExtractor={(item) => item.id.toString()}
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 4, gap: 12 }}
-                />
+              />
             </View>
-            )}
+          )}
 
-            <View style={{ height: 80 }} /> 
+          <View style={{ height: 80 }} />
         </View>
       </ScrollView>
     </>
@@ -371,23 +432,23 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   headerContainer: {
-      height: 400,
-      width: '100%',
-      position: 'relative',
+    height: 400,
+    width: '100%',
+    position: 'relative',
   },
   backButton: {
-      position: 'absolute',
-      top: 48,
-      left: 16,
-      zIndex: 10,
+    position: 'absolute',
+    top: 48,
+    left: 16,
+    zIndex: 10,
   },
   iconBackdrop: {
-      backgroundColor: 'rgba(0,0,0,0.4)',
-      borderRadius: 20,
-      width: 40,
-      height: 40,
-      justifyContent: 'center',
-      alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   indicatorContainer: {
     position: 'absolute',
@@ -403,58 +464,58 @@ const styles = StyleSheet.create({
     marginHorizontal: 3,
   },
   contentContainer: {
-      flex: 1,
-      marginTop: -40, 
-      borderTopLeftRadius: 24,
-      borderTopRightRadius: 24,
-      paddingTop: 24,
+    flex: 1,
+    marginTop: -40,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 24,
   },
   titleSection: {
-      paddingHorizontal: 20,
-      marginBottom: 0,
+    paddingHorizontal: 20,
+    marginBottom: 0,
   },
   title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      marginBottom: 4,
-      lineHeight: 34,
+    fontSize: 28,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    lineHeight: 34,
   },
   originalTitle: {
-      fontSize: 16,
-      marginBottom: 16,
-      opacity: 0.7,
+    fontSize: 16,
+    marginBottom: 16,
+    opacity: 0.7,
   },
   metaInfo: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 8,
-      marginBottom: 20,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
   },
   badget: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   badgetText: {
-      fontSize: 12,
-      fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '600',
   },
   section: {
-      marginTop: 24,
-      borderRadius: 20,
-      padding: 16,
-      marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 16,
+    marginHorizontal: 16,
   },
   sectionHeader: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      marginBottom: 12,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
   },
   descriptionText: {
-      fontSize: 15,
-      lineHeight: 24,
-      letterSpacing: 0.2,
+    fontSize: 15,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
 });

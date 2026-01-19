@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FontAwesome } from '@expo/vector-icons';
-import { ShikimoriInfo, MISSING_POSTER_URL, canOpen } from '@/types/anime';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ShikimoriInfo, MISSING_POSTER_URL, canOpen, STATUS_COLORS } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
+import StatusSelector from '@/components/anime/StatusSelector';
 
 interface AnimeCardProps {
   anime: ShikimoriInfo;
@@ -15,9 +16,10 @@ interface AnimeCardProps {
 export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: AnimeCardProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
-  const { isFavorite, addToFavorites, removeFromFavorites } = useAnimeStore();
-  const favorite = isFavorite(anime.id);
+  const { getAnimeStatus } = useAnimeStore();
+  const currentStatus = getAnimeStatus(anime.id);
   const [canAnim, setCanAnim] = useState(true);
+  const [statusModalVisible, setStatusModalVisible] = useState(false);
   const overlayAnim = useRef(new Animated.Value(0)).current;
 
   const showOverlay = () => {
@@ -49,14 +51,7 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
 
   const toggleFavorite = (e: any) => {
     e.stopPropagation();
-    if (favorite) {
-      removeFromFavorites(anime.id);
-      if (onRemoveFavorite) {
-        onRemoveFavorite(anime.id);
-      }
-    } else {
-      addToFavorites(anime);
-    }
+    setStatusModalVisible(true);
   };
 
   const getCardSize = () => {
@@ -84,8 +79,11 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
 
   const sizeStyles = getCardSize();
 
+  const bookmarkColor = currentStatus ? STATUS_COLORS[currentStatus] : colors.subtext;
+  const bookmarkIcon = currentStatus ? 'bookmark' : 'bookmark-outline';
   
   return (
+    <>
     <Pressable
       style={[styles.container, sizeStyles.container, { backgroundColor: colors.card }]}
       onPress={handlePress}
@@ -130,10 +128,10 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
           onPress={toggleFavorite}
           hitSlop={10}
         >
-          <FontAwesome
-            name="heart"
-            size={20}
-            color={favorite ? colors.secondary : colors.subtext}
+          <MaterialCommunityIcons
+            name={bookmarkIcon}
+            size={22}
+            color={bookmarkColor}
           />
         </Pressable>
       </View>
@@ -151,6 +149,8 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
         </Text>
       </View>
     </Pressable>
+    <StatusSelector anime={anime} visible={statusModalVisible} onClose={() => setStatusModalVisible(false)} />
+    </>
   );
 }
 
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   infoContainer: {
     padding: 8,
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   title: {
     fontWeight: '600',

@@ -46,7 +46,7 @@ function RootLayoutNav() {
     statusBarBackgroundColor: colors.background,
     statusBarHidden: false,
 
-    navigationBarTranslucent: false,
+    navigationBarTranslucent: true,
     navigationBarColor: colors.background,
   }), [colors]);
 
@@ -64,6 +64,7 @@ function RootLayoutNav() {
         options={{
           title: "Информация об аниме",
           animation: 'slide_from_right',
+          statusBarBackgroundColor: 'transparent'
         }}
       />
       <Stack.Screen
