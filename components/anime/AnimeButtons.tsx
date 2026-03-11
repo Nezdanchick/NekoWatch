@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
@@ -15,8 +15,8 @@ interface AnimeButtonsProps {
 export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
   const { colors } = useThemeStore();
   const [isTranslationsVisible, setTranslationsVisible] = useState(false);
-  const [availablePlayers, setAvailablePlayers] = useState<{ key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[]>([]);
-  const [collapsUrl, setCollapsUrl] = useState<string | null>(null);
+  const [collapsState, setCollapsState] = useState<{ url: string; animeId: number } | null>(null);
+  
   const animationHeight = useRef(new Animated.Value(0)).current;
   const animationInProgress = useRef(false);
   const router = useRouter();
@@ -25,38 +25,40 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
 
   const imageUrl = shikimori?.poster?.mainUrl || MISSING_POSTER_URL;
 
+  const validCollapsUrl = collapsState?.animeId === shikimori?.id ? collapsState.url : null;
+
+  const availablePlayers = useMemo(() => {
+    const list: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
+
+    if (kodik && kodik.length > 0 && kodik[0]?.link) {
+      list.push({ key: 'kodik', title: 'Kodik', link: kodik[0].link });
+    }
+    
+    if (validCollapsUrl) {
+      list.push({ key: 'collaps', title: 'Collaps', link: validCollapsUrl });
+    }
+    
+    return list;
+  }, [kodik, validCollapsUrl]);
 
   useEffect(() => {
     const kpId = (kodik && kodik.length > 0) ? kodik[0].kinopoisk_id : null;
-    const nextPlayers: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
-
-    if (kodik && kodik.length > 0 && kodik[0]?.link) {
-      nextPlayers.push({ key: 'kodik', title: 'Kodik', link: kodik[0].link });
-    }
 
     async function checkCollaps() {
       if (!kpId) return;
+      if (collapsState?.animeId === shikimori?.id && collapsState?.url) return;
+
       const url = `https://neko-collaps.deno.dev/?kinopoisk_id=${kpId}`;
       try {
         const resp = await fetch(url);
-        if (resp.ok) setCollapsUrl(url);
+        if (resp.ok) {
+           setCollapsState({ url, animeId: shikimori.id });
+        }
       } catch {}
     }
 
     checkCollaps();
-    setAvailablePlayers(nextPlayers);
   }, [shikimori?.id, kodik]);
-
-  useEffect(() => {
-    const nextPlayers: { key: 'kodik' | 'collaps' | 'flix'; title: string; link: string }[] = [];
-    if (kodik && kodik.length > 0 && kodik[0]?.link) {
-      nextPlayers.push({ key: 'kodik', title: 'Kodik', link: kodik[0].link });
-    }
-    if (collapsUrl) {
-      nextPlayers.push({ key: 'collaps', title: 'Collaps', link: collapsUrl });
-    }
-    setAvailablePlayers(nextPlayers);
-  }, [collapsUrl, kodik]);
 
   useEffect(() => {
     if (isTranslationsVisible) {

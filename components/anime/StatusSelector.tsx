@@ -126,7 +126,7 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
               <Animated.View style={[
                 styles.modalContent,
                 {
-                  backgroundColor: colors.card,
+                  backgroundColor: colors.tabBar,
                   transform: [{ translateY }]
                 }
               ]}>
@@ -251,6 +251,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     marginTop: 12,
     gap: 16,
-    opacity: 0.8
   }
 });

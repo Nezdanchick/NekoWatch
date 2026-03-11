@@ -203,11 +203,6 @@ export default function AnimeDetailsScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: false,
-        }}
-      />
       <ScrollView
         ref={mainScrollRef}
         style={[styles.container, { backgroundColor: colors.background }]}
@@ -257,7 +252,7 @@ export default function AnimeDetailsScreen() {
                 }
               )}
               renderItem={({ item }) => (
-                <View style={{ width: screenWidth, height: 400 }}>
+                <View style={{ width: screenWidth }}>
                   <Image
                     source={{ uri: item }}
                     style={{ width: '100%', height: '100%' }}

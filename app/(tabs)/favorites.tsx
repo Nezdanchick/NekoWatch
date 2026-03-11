@@ -93,7 +93,7 @@ export default function BookmarksScreen() {
           data={filteredData}
           renderItem={renderAnimeItem}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={2}
+          numColumns={3}
           contentContainerStyle={styles.listContent}
         />
       </View>

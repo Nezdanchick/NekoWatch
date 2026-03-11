@@ -1,7 +1,7 @@
 import { ShikimoriInfo } from "@/types/anime";
 import { Platform } from "react-native";
 
-const GRAPHQL_URL = "https://shikimori.one/api/graphql";
+const GRAPHQL_URL = "https://shiki.one/api/graphql";
 const USER_AGENT = "NekoWatch (https://github.com/nezdanchick/NekoWatch)";
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

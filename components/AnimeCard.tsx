@@ -6,6 +6,7 @@ import { ShikimoriInfo, MISSING_POSTER_URL, canOpen, STATUS_COLORS } from '@/typ
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import StatusSelector from '@/components/anime/StatusSelector';
+import { Dimensions } from 'react-native';
 
 interface AnimeCardProps {
   anime: ShikimoriInfo;
@@ -13,7 +14,7 @@ interface AnimeCardProps {
   onRemoveFavorite?: (animeId: number) => void;
 }
 
-export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: AnimeCardProps) {
+export default function AnimeCard({ anime }: AnimeCardProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
   const { getAnimeStatus } = useAnimeStore();
@@ -54,46 +55,68 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
     setStatusModalVisible(true);
   };
 
-  const getCardSize = () => {
-    switch (size) {
-      case 'small':
-        return {
-          container: { width: 140, height: 220 },
-          image: { height: 160 },
-          title: { fontSize: 12 },
-        };
-      case 'large':
-        return {
-          container: { width: 200, height: 300 },
-          image: { height: 220 },
-          title: { fontSize: 16 },
-        };
-      default:
-        return {
-          container: { width: 160, height: 260 },
-          image: { height: 200 },
-          title: { fontSize: 14 },
-        };
-    }
-  };
+  const scale = 1;
+  const s = (val: number) => val * scale;
 
-  const sizeStyles = getCardSize();
+  const dynamicStyles = {
+    container: {
+      width: s(180),
+      height: s(270),
+      borderRadius: s(16),
+    },
+    title: {
+      fontSize: s(14),
+      padding: s(4)
+    },
+    meta: {
+      fontSize: s(10)
+    },
+    date: {
+      fontSize: s(10)
+    },
+    score: {
+      fontSize: s(12)
+    },
+    lockText: {
+      fontSize: s(24)
+    },
+    lockTextSmall: {
+      fontSize: s(12),
+      marginTop: s(4),
+    },
+    favoriteButton: {
+      bottom: s(8),
+      right: s(8),
+      borderRadius: s(12),
+      padding: s(8),
+    },
+    metaContainer: {
+      left: s(12),
+      right: s(12),
+      borderBottomLeftRadius: s(16),
+      borderBottomRightRadius: s(16),
+      paddingHorizontal: s(8),
+      paddingVertical: s(4),
+    },
+    infoContainer: {
+      height: s(52),
+      paddingRight: s(44),
+    },
+  };
 
   const bookmarkColor = currentStatus ? STATUS_COLORS[currentStatus] : colors.subtext;
   const bookmarkIcon = currentStatus ? 'bookmark' : 'bookmark-outline';
-  
+
   return (
     <>
-    <Pressable
-      style={[styles.container, sizeStyles.container, { backgroundColor: colors.card }]}
-      onPress={handlePress}
-    >
-      <View style={styles.imageContainer}>
+      <Pressable
+        style={[styles.container, dynamicStyles.container, { backgroundColor: colors.card, borderColor: colors.border }]}
+        onPress={handlePress}
+      >
         <Animated.Image
           source={{ uri: anime.poster ? anime.poster.mainUrl : MISSING_POSTER_URL }}
           style={[
             styles.image,
-            sizeStyles.image,
             { opacity: overlayAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) },
           ]}
           resizeMode="cover"
@@ -105,73 +128,58 @@ export default function AnimeCard({ anime, size = 'medium', onRemoveFavorite }: 
             { opacity: overlayAnim, backgroundColor: colors.card },
           ]}
         >
-          <Text style={[styles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
-          <Text style={[styles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
+          <Text style={[styles.lockText, dynamicStyles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
+          <Text style={[styles.lockTextSmall, dynamicStyles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
         </Animated.View>
-        <View style={[styles.metaContainer, { backgroundColor: colors.card }]}>
+        <View style={[styles.metaContainer, dynamicStyles.metaContainer, { backgroundColor: colors.card }]}>
           {anime.kind && (
-            <Text style={[styles.meta, { color: colors.primary }]}>
+            <Text style={[styles.meta, dynamicStyles.meta, { color: colors.primary }]}>
               {anime.kind && anime.kind.replaceAll('_', ' ').toUpperCase()}
             </Text>
           )}
           {anime.airedOn.date && (
-            <Text style={[styles.date, { color: colors.subtext }]}>
+            <Text style={[styles.date, dynamicStyles.date, { color: colors.subtext }]}>
               {anime.airedOn.date}
             </Text>
           )}
-          <Text style={[styles.score, { color: colors.primary }]}>
+          <Text style={[styles.score, dynamicStyles.score, { color: colors.primary }]}>
             {anime.score !== 0 ? anime.score.toFixed(1).toString() : '-'}
           </Text>
         </View>
+        <View style={[styles.infoContainer, dynamicStyles.infoContainer, { backgroundColor: colors.card, opacity: 0.9 }]}>
+          <Text
+            style={[styles.title, dynamicStyles.title, { color: colors.text }]}
+            numberOfLines={2}
+            ellipsizeMode='tail'
+          >
+            {anime.russian || anime.name || 'Без названия'}
+          </Text>
+        </View>
         <Pressable
-          style={[styles.favoriteButton, { backgroundColor: colors.background }]}
+          style={[styles.favoriteButton, dynamicStyles.favoriteButton, { backgroundColor: colors.background }]}
           onPress={toggleFavorite}
           hitSlop={10}
         >
           <MaterialCommunityIcons
             name={bookmarkIcon}
-            size={22}
+            size={s(20)}
             color={bookmarkColor}
           />
         </Pressable>
-      </View>
-      <View style={styles.infoContainer}>
-        <Text
-          style={[
-            styles.title,
-            sizeStyles.title,
-            { color: colors.text },
-          ]}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {anime.russian || anime.name || 'Без названия'}
-        </Text>
-      </View>
-    </Pressable>
-    <StatusSelector anime={anime} visible={statusModalVisible} onClose={() => setStatusModalVisible(false)} />
+      </Pressable>
+      <StatusSelector anime={anime} visible={statusModalVisible} onClose={() => setStatusModalVisible(false)} />
     </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 12,
     overflow: 'hidden',
-    margin: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  imageContainer: {
-    position: 'relative',
-    overflow: 'hidden',
+    margin: 4,
   },
   image: {
     width: '100%',
-    height: 180,
+    height: '100%',
   },
   lockOverlay: {
     position: 'absolute',
@@ -197,51 +205,44 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
-    borderRadius: 20,
-    padding: 6,
     zIndex: 10,
+    opacity: 0.8,
   },
   infoContainer: {
-    padding: 8,
-    flex: 1,
+    padding: 4,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     justifyContent: 'center',
   },
   title: {
     fontWeight: '600',
-    marginBottom: 4,
     textAlign: 'center',
-    fontSize: 14,
-    lineHeight: 20,
   },
   metaContainer: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    right: 8,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderRadius: 8,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    opacity: 0.9,
   },
   meta: {
     fontSize: 9,
     flexShrink: 1,
+    fontWeight: '500',
   },
   date: {
     fontSize: 9,
     flexShrink: 1,
+    fontWeight: '500',
   },
   score: {
     fontSize: 12,
     flexShrink: 1,
-    fontWeight: '700',
+    fontWeight: '600',
   },
 });
