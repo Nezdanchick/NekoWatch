@@ -6,12 +6,15 @@ import { ShikimoriInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { usePlatform } from '@/hooks/usePlatform';
+import ContentContainer from '@/components/ContentContainer';
 
 export default function FullAnimeList() {
   const { colors } = useThemeStore();
   const [data, setData] = useState<ShikimoriInfo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [page, setPage] = useState<number>(1);
+  const { numColumns, gridCardWidth } = usePlatform();
 
   const params = useLocalSearchParams();
   const type = params.type as string;
@@ -47,9 +50,10 @@ export default function FullAnimeList() {
     }
   };
   const renderItem = ({ item }: { item: ShikimoriInfo }) => (
-    <View style={styles.cardContainer}>
+    <View style={[styles.cardContainer, { width: gridCardWidth + 12 }]}>
       <AnimeCard
         anime={item}
+        cardWidth={gridCardWidth}
       />
     </View>
   );
@@ -62,13 +66,15 @@ export default function FullAnimeList() {
         }}
       />
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <ContentContainer>
         <FlatList
           data={data.filter(anime => canShow(anime))}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.list]}
-          numColumns={2}
+          numColumns={numColumns}
+          key={`list-${numColumns}`}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
@@ -79,6 +85,7 @@ export default function FullAnimeList() {
             ) : null
           }
         />
+        </ContentContainer>
       </SafeAreaView>
     </>
   );
@@ -98,7 +105,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cardContainer: {
-    width: '50%',
     alignItems: 'center',
     padding: 4,
   },

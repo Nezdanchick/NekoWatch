@@ -1,11 +1,12 @@
 ﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, Text, View, Pressable, Animated } from 'react-native';
+import { StyleSheet, Text, View, Animated } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
 import { ShikimoriInfo, KodikInfo, MISSING_POSTER_URL } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useRouter } from 'expo-router';
 import StatusSelector from './StatusSelector';
+import Focusable from '@/components/Focusable';
 
 interface AnimeButtonsProps {
   shikimori: ShikimoriInfo;
@@ -110,26 +111,27 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
           </View>
           
           {availablePlayers.some(p => p.key === 'kodik') && (
-            <Pressable
+            <Focusable
                 style={[
                 styles.fab,
                 { backgroundColor: colors.primary },
                 ]}
                 onPress={handlePlay}
+                focusScale={1.1}
             >
                 <MaterialCommunityIcons
                 name="play"
                 size={24}
                 color={'#fff'}
                 />
-            </Pressable>
+            </Focusable>
           )}
       </View>
 
-      <Pressable
+      <Focusable
           style={[
             styles.dropdownButton,
-            { backgroundColor: colors.card },
+            { backgroundColor: colors.surfaceVariant },
             !availablePlayers.length && { opacity: 0.5 }
           ]}
           onPress={toggleTranslationsVisibility}
@@ -145,7 +147,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
               color={colors.text}
             />
           )}
-      </Pressable>
+      </Focusable>
 
       <Animated.View
         style={[
@@ -156,12 +158,12 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
         ]}
       >
         {availablePlayers.map((player, index) => (
-          <Pressable
+          <Focusable
             key={`${player.key}-${index}`}
             style={[
               styles.playerOption,
-              { backgroundColor: colors.card },
-              index > 0 && { borderTopWidth: 1, borderTopColor: colors.background}
+              { backgroundColor: colors.surface },
+              index > 0 && { borderTopWidth: 1, borderTopColor: colors.border}
             ]}
             onPress={() => handleWatchPress(player.link)}
           >
@@ -169,7 +171,7 @@ export default function AnimeButtons({ shikimori, kodik }: AnimeButtonsProps) {
               {player.title}
             </Text>
              <MaterialCommunityIcons name="arrow-right" size={20} color={colors.subtext} />
-          </Pressable>
+          </Focusable>
         ))}
       </Animated.View>
     </View>

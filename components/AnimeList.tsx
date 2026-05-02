@@ -1,10 +1,12 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { FlatList, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import AnimeCard from './AnimeCard';
 import { ShikimoriInfo, canShow } from '@/types/anime';
 import { useThemeStore } from '@/store/theme-store';
 import { fetchAnimeList } from '@/services/shikimori-api';
+import Focusable from '@/components/Focusable';
+import { usePlatform } from '@/hooks/usePlatform';
 
 interface AnimeListProps {
   type: 'popular' | 'latest' | 'ongoing' | 'anons';
@@ -29,6 +31,7 @@ export default function AnimeList({
 }: AnimeListProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
+  const { numColumns, gridCardWidth } = usePlatform();
   const handleViewAll = () => {
     router.push({
       pathname: '/screens/anime-list',
@@ -56,26 +59,26 @@ export default function AnimeList({
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={styles.container}>
       {title && (
         <View style={styles.titleContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
-          <TouchableOpacity onPress={handleViewAll} style={styles.viewAllContainer}>
+          <Focusable onPress={handleViewAll} style={styles.viewAllContainer}>
             <Text style={[styles.viewAllText, { color: colors.primary }]}>Все</Text>
             <Text style={[styles.arrowText, { color: colors.primary }]}>→</Text>
-          </TouchableOpacity>
+          </Focusable>
         </View>
       )}
       <FlatList
         data={data.filter(anime => canShow(anime))}
-        renderItem={({ item }) => <AnimeCard anime={item} size={cardSize} />}
+        renderItem={({ item }) => <AnimeCard anime={item} size={cardSize} cardWidth={horizontal ? undefined : gridCardWidth} />}
         keyExtractor={(item) => item.id.toString()}
         horizontal={horizontal}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={horizontal ? styles.horizontalList : styles.gridList}
-        numColumns={horizontal ? 1 : 2}
-        key={horizontal ? 'horizontal' : 'grid'}
+        numColumns={horizontal ? 1 : numColumns}
+        key={horizontal ? 'horizontal' : `grid-${numColumns}`}
       />
     </View>
   );

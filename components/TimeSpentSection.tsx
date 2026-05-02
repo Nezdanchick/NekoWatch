@@ -11,7 +11,7 @@ export const TimeSpentSection = () => {
   const minutes = totalMinutes % 60;
 
   return (
-    <View style={[styles.section, { backgroundColor: colors.card }]}>
+    <View style={[styles.section, { backgroundColor: colors.surface }]}>
       <View style={styles.iconContainer}>
         <MaterialCommunityIcons 
           name="clock" 

@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated } from 'react-native';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { useThemeStore } from '@/store/theme-store';
 import { themeMap, ThemeName } from '@/constants/theme';
+import Focusable from '@/components/Focusable';
 
 const themeNames: ThemeName[] = ['dark', 'light', 'amoled'];
 
@@ -29,7 +30,7 @@ const ThemeSelector: React.FC = () => {
 
   return (
     <View
-      style={[styles.container, { backgroundColor: colors.card }]}
+      style={[styles.container, { backgroundColor: colors.surfaceVariant }]}
       onLayout={e => setWidth(e.nativeEvent.layout.width)}
     >
       {optionWidth > 0 && (
@@ -37,7 +38,7 @@ const ThemeSelector: React.FC = () => {
           style={[
             styles.slider,
             {
-              backgroundColor: colors.disabled,
+              backgroundColor: colors.secondaryContainer,
               width: optionWidth,
               transform: [{ translateX: sliderPosition }],
             },
@@ -45,18 +46,18 @@ const ThemeSelector: React.FC = () => {
         />
       )}
       {themeNames.map(name => (
-        <Pressable
+        <Focusable
           key={name}
           style={[styles.option, { width: optionWidth }]}
           onPress={() => handlePress(name)}
         >
           <Text style={[
             styles.text,
-            { color: colors.text, fontWeight: themeName === name ? 'bold' : '600' }
+            { color: themeName === name ? colors.onSecondaryContainer : colors.subtext, fontWeight: themeName === name ? 'bold' : '500' }
           ]}>
             {name === 'dark' ? 'Тёмная' : name === 'light' ? 'Светлая' : 'Amoled'}
           </Text>
-        </Pressable>
+        </Focusable>
       ))}
     </View>
   );
@@ -66,17 +67,17 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 60,
-    borderRadius: 8,
+    height: 56,
+    borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
   },
   slider: {
     position: 'absolute',
     left: 0,
-    top: 0,
-    height: '100%',
-    borderRadius: 8,
+    top: 4,
+    height: 48,
+    borderRadius: 12,
     zIndex: 0,
   },
   option: {

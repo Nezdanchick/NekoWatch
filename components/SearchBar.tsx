@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
-import { StyleSheet, TextInput, View, Pressable, TextInputProps } from 'react-native';
+import { StyleSheet, TextInput, View, TextInputProps } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
+import Focusable from '@/components/Focusable';
 
 interface SearchBarProps extends TextInputProps {
   value: string;
@@ -19,8 +20,8 @@ const SearchBar = forwardRef<TextInput, SearchBarProps>(
 
     return (
       <View style={styles.container}>
-        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-          <FontAwesome name="search" size={20} color={colors.subtext} style={styles.searchIcon} />
+        <View style={[styles.searchContainer, { backgroundColor: colors.surfaceVariant }]}>
+          <FontAwesome name="search" size={20} color={colors.outline} style={styles.searchIcon} />
           <TextInput
             ref={ref}
             style={[styles.input, { color: colors.text }]}
@@ -35,9 +36,9 @@ const SearchBar = forwardRef<TextInput, SearchBarProps>(
             {...props}
           />
           {value.length > 0 && (
-            <Pressable onPress={handleClear} style={styles.clearButton}>
+            <Focusable onPress={handleClear} style={styles.clearButton} focusScale={1.2}>
               <FontAwesome name="times" size={18} color={colors.subtext} />
-            </Pressable>
+            </Focusable>
           )}
         </View>
       </View>
@@ -52,9 +53,9 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
+    borderRadius: 28,
+    paddingHorizontal: 16,
+    height: 56,
   },
   searchIcon: {
     marginRight: 8,

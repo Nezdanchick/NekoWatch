@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { StyleSheet, FlatList, View, Text, Pressable } from 'react-native';
+import { StyleSheet, FlatList, View, Text } from 'react-native';
 import { useAnimeStore } from '@/store/anime-store';
 import WatchHistoryItem from '@/components/history/WatchHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
 import { Stack } from 'expo-router';
 import ConfirmationModal from '@/components/ConfirmationModal';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Focusable from '@/components/Focusable';
 
 export default function HistoryScreen() {
   const { colors } = useThemeStore();
@@ -39,9 +40,9 @@ export default function HistoryScreen() {
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 80 }}
       />
       {watchHistory.length > 0 ? (
-        <Pressable style={[styles.clearButton, { backgroundColor: colors.primary }]} onPress={handleClearHistory}>
-          <Text style={[styles.clearButtonText, { color: colors.text }]}>Очистить историю</Text>
-        </Pressable>
+        <Focusable style={[styles.clearButton, { backgroundColor: colors.secondary }]} onPress={handleClearHistory}>
+          <Text style={[styles.clearButtonText, { color: colors.onSecondaryContainer }]}>Очистить историю</Text>
+        </Focusable>
       ) : null}
 
       <ConfirmationModal
@@ -66,11 +67,12 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     paddingVertical: 16,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
   },
   clearButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: 0.1,
   },
 });

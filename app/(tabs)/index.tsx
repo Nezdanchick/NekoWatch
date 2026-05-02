@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, Text, View, RefreshControl, Animated, Platform } from 'react-native';
+import { StyleSheet, Text, View, RefreshControl, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAnimeStore } from '@/store/anime-store';
@@ -8,6 +8,7 @@ import { ShikimoriInfo } from '@/types/anime';
 import AnimeList from '@/components/AnimeList';
 import SwipableHistoryItem from '@/components/history/SwipableHistoryItem';
 import { useThemeStore } from '@/store/theme-store';
+import ContentContainer from '@/components/ContentContainer';
 
 const animeCount = 25;
 const CACHE_KEYS = {
@@ -157,17 +158,18 @@ export default function HomeScreen() {
   const opacity = animationValue;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Animated.ScrollView
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScrollEndDrag={handleScrollEndDrag}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {error && (
-          <View style={[styles.errorContainer, { backgroundColor: colors.background }]}>
-            <Text style={[styles.errorText, { color: colors.secondary }]}>{error}</Text>
-          </View>
-        )}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ContentContainer>
+        <Animated.ScrollView
+          onScrollBeginDrag={handleScrollBeginDrag}
+          onScrollEndDrag={handleScrollEndDrag}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          {error && (
+            <View style={[styles.errorContainer, { backgroundColor: colors.secondaryContainer }]}>
+              <Text style={[styles.errorText, { color: colors.onSecondaryContainer }]}>{error}</Text>
+            </View>
+          )}
 
         <View style={styles.section}>
           <AnimeList
@@ -218,15 +220,16 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.footer} />
-      </Animated.ScrollView>
+        </Animated.ScrollView>
 
-      {watchHistory.length > 0 && (
-        <Animated.View
-          style={[styles.watchHistoryContainer, { transform: [{ translateY }], opacity }]}
-        >
-          <SwipableHistoryItem key={`${watchHistory[0].animeId}`} item={watchHistory[0]} />
-        </Animated.View>
-      )}
+        {watchHistory.length > 0 && (
+          <Animated.View
+            style={[styles.watchHistoryContainer, { transform: [{ translateY }], opacity }]}
+          >
+            <SwipableHistoryItem key={`${watchHistory[0].animeId}`} item={watchHistory[0]} />
+          </Animated.View>
+        )}
+      </ContentContainer>
     </SafeAreaView>
   );
 }

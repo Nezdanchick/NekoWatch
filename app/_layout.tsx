@@ -55,7 +55,7 @@ function RootLayoutNav() {
       <Stack.Screen
         name="(tabs)"
         options={{
-          navigationBarColor: colors.tabBar,
+          navigationBarColor: colors.surface,
           headerShown: false,
           orientation: 'default',
         }}

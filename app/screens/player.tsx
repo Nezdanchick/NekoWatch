@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, Platform, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet, View, Text, Platform, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTimeStore } from '@/store/time-store';
 import { useThemeStore } from '@/store/theme-store';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import VirtualMouse from '@/components/VirtualMouse';
 
 const MAX_RETRIES = 5;
 const RETRY_DELAY = 3000;
@@ -14,7 +15,8 @@ export default function PlayerScreen() {
   const { colors } = useThemeStore();
   const insets = useSafeAreaInsets();
   const { kodikUrl } = useLocalSearchParams<{ kodikUrl: string }>();
-
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isTV = Platform.isTV === true;
 
   const horizontalPadding = Math.max(insets.left, insets.right);
 
@@ -24,13 +26,9 @@ export default function PlayerScreen() {
   const webViewRef = useRef<WebView>(null);
   const { startTracking, stopTracking } = useTimeStore();
 
-
   useEffect(() => {
     startTracking();
-
-    return () => {
-      stopTracking();
-    };
+    return () => { stopTracking(); };
   }, [startTracking, stopTracking]);
 
   useEffect(() => {
@@ -57,13 +55,13 @@ export default function PlayerScreen() {
   const handleError = () => setError(true);
 
   return (
-    <View 
+    <View
       style={[
-        styles.container, 
-        { 
+        styles.container,
+        {
           backgroundColor: 'black',
           paddingLeft: horizontalPadding,
-          paddingRight: horizontalPadding, 
+          paddingRight: horizontalPadding,
         }
       ]}
     >
@@ -71,7 +69,7 @@ export default function PlayerScreen() {
       {Platform.OS === 'web' ? (
         <iframe
           src={kodikUrl}
-          style={{ ...styles.iframe, backgroundColor: 'black' }} // добавлено
+          style={{ ...styles.iframe, backgroundColor: 'black' }}
           allowFullScreen
           onLoad={handleLoad}
         />
@@ -99,6 +97,7 @@ export default function PlayerScreen() {
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           )}
+          {isTV && <VirtualMouse webViewRef={webViewRef} width={screenWidth} height={screenHeight} />}
         </>
       )}
     </View>

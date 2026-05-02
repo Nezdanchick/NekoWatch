@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import { MaterialCommunityIcons, FontAwesome} from '@expo/vector-icons';
@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { TimeSpentSection } from '@/components/TimeSpentSection';
 import ThemeSelector from '@/components/ThemeSelector';
 import appJson from '../../app.json';
+import Focusable from '@/components/Focusable';
+import ContentContainer from '@/components/ContentContainer';
 
 export default function ProfileScreen() {
   const colors = useThemeStore(state => state.colors);
@@ -45,11 +47,10 @@ export default function ProfileScreen() {
   };
 
   const renderMenuItem = (icon: React.ReactNode, title: string, subtitle: string, onPress?: () => void, badge?: number) => (
-    <Pressable
-      style={[styles.menuItem, { backgroundColor: colors.card }]}
+    <Focusable
+      style={[styles.menuItem, { backgroundColor: colors.surface }]}
       onPress={onPress}
       disabled={!onPress}
-      android_ripple={{ color: colors.primary + '30' }}
     >
       <View style={styles.menuIcon}>
         {icon}
@@ -68,25 +69,25 @@ export default function ProfileScreen() {
           <MaterialCommunityIcons name="chevron-right" size={24} color={colors.subtext} />
         )}
       </View>
-    </Pressable>
+    </Focusable>
   );
 
   const renderDeveloperCard = (icon: React.ReactNode, name: string, role: string, onPress: () => void) => (
-    <Pressable
-      style={[styles.developerCard, { backgroundColor: colors.card }]}
+    <Focusable
+      style={[styles.developerCard, { backgroundColor: colors.surface }]}
       onPress={onPress}
-      android_ripple={{ color: colors.primary + '30' }}
     >
       <View style={styles.developerIcon}>
         {icon}
       </View>
       <Text style={[styles.developerName, { color: colors.text }]}>{name}</Text>
       <Text style={[styles.developerRole, { color: colors.subtext }]}>{role}</Text>
-    </Pressable>
+    </Focusable>
   );
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ContentContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={[styles.headerTitle, { color: colors.text }]}>Профиль</Text>
@@ -154,6 +155,7 @@ export default function ProfileScreen() {
           <Text style={[styles.footerText, { color: colors.subtext }]}>NekoWatch v{appJson.expo.version}</Text>
         </View>
       </ScrollView>
+      </ContentContainer>
     </SafeAreaView>
   );
 }

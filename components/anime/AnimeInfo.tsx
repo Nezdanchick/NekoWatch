@@ -14,7 +14,7 @@ export default function AnimeInfo({ shikimori, kodik }: AnimeInfoProps) {
   const { colors } = useThemeStore();
   
   return (
-    <View style={[styles.infoBadge, { backgroundColor: colors.card }]}>
+    <View style={[styles.infoBadge, { backgroundColor: colors.surfaceVariant }]}>
         <View style={styles.infoItem}>
           <MaterialCommunityIcons name="tag" size={16} color={colors.text} />
           <Text style={[styles.infoText, { color: colors.text }]}>

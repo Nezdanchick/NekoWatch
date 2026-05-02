@@ -1,20 +1,21 @@
 import React, { useRef, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, Image, Animated } from 'react-native';
+import { StyleSheet, Text, View, Image, Animated, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ShikimoriInfo, MISSING_POSTER_URL, canOpen, STATUS_COLORS } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { useThemeStore } from '@/store/theme-store';
 import StatusSelector from '@/components/anime/StatusSelector';
-import { Dimensions } from 'react-native';
+import Focusable from '@/components/Focusable';
 
 interface AnimeCardProps {
   anime: ShikimoriInfo;
   size?: 'small' | 'medium' | 'large';
+  cardWidth?: number;
   onRemoveFavorite?: (animeId: number) => void;
 }
 
-export default function AnimeCard({ anime }: AnimeCardProps) {
+export default function AnimeCard({ anime, cardWidth: propWidth }: AnimeCardProps) {
   const { colors } = useThemeStore();
   const router = useRouter();
   const { getAnimeStatus } = useAnimeStore();
@@ -22,6 +23,7 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
   const [canAnim, setCanAnim] = useState(true);
   const [statusModalVisible, setStatusModalVisible] = useState(false);
   const overlayAnim = useRef(new Animated.Value(0)).current;
+  const { width: screenWidth } = useWindowDimensions();
 
   const showOverlay = () => {
     setCanAnim(false);
@@ -55,13 +57,17 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
     setStatusModalVisible(true);
   };
 
-  const scale = 1;
-  const s = (val: number) => val * scale;
+  const baseWidth = 180;
+  const defaultWidth = screenWidth >= 1200 ? 200 : screenWidth >= 768 ? 190 : baseWidth;
+  const cWidth = propWidth || defaultWidth;
+  const cHeight = Math.round(cWidth * 1.5);
+  const scale = cWidth / baseWidth;
+  const s = (val: number) => Math.round(val * scale);
 
   const dynamicStyles = {
     container: {
-      width: s(180),
-      height: s(270),
+      width: cWidth,
+      height: cHeight,
       borderRadius: s(16),
     },
     title: {
@@ -109,8 +115,8 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
 
   return (
     <>
-      <Pressable
-        style={[styles.container, dynamicStyles.container, { backgroundColor: colors.card, borderColor: colors.border }]}
+      <Focusable
+        style={[styles.container, dynamicStyles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}
         onPress={handlePress}
       >
         <Animated.Image
@@ -125,13 +131,13 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
           pointerEvents="none"
           style={[
             styles.lockOverlay,
-            { opacity: overlayAnim, backgroundColor: colors.card },
+            { opacity: overlayAnim, backgroundColor: colors.surface },
           ]}
         >
           <Text style={[styles.lockText, dynamicStyles.lockText, { color: colors.subtext }]}>¯\_(ツ)_/¯</Text>
           <Text style={[styles.lockTextSmall, dynamicStyles.lockTextSmall, { color: colors.text }]}>Тайтл еще не вышел</Text>
         </Animated.View>
-        <View style={[styles.metaContainer, dynamicStyles.metaContainer, { backgroundColor: colors.card }]}>
+        <View style={[styles.metaContainer, dynamicStyles.metaContainer, { backgroundColor: colors.surface }]}>
           {anime.kind && (
             <Text style={[styles.meta, dynamicStyles.meta, { color: colors.primary }]}>
               {anime.kind && anime.kind.replaceAll('_', ' ').toUpperCase()}
@@ -146,7 +152,7 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
             {anime.score !== 0 ? anime.score.toFixed(1).toString() : '-'}
           </Text>
         </View>
-        <View style={[styles.infoContainer, dynamicStyles.infoContainer, { backgroundColor: colors.card, opacity: 0.9 }]}>
+        <View style={[styles.infoContainer, dynamicStyles.infoContainer, { backgroundColor: colors.surface, opacity: 0.9 }]}>
           <Text
             style={[styles.title, dynamicStyles.title, { color: colors.text }]}
             numberOfLines={2}
@@ -155,18 +161,19 @@ export default function AnimeCard({ anime }: AnimeCardProps) {
             {anime.russian || anime.name || 'Без названия'}
           </Text>
         </View>
-        <Pressable
+        <Focusable
           style={[styles.favoriteButton, dynamicStyles.favoriteButton, { backgroundColor: colors.background }]}
           onPress={toggleFavorite}
           hitSlop={10}
+          focusScale={1.15}
         >
           <MaterialCommunityIcons
             name={bookmarkIcon}
             size={s(20)}
             color={bookmarkColor}
           />
-        </Pressable>
-      </Pressable>
+        </Focusable>
+      </Focusable>
       <StatusSelector anime={anime} visible={statusModalVisible} onClose={() => setStatusModalVisible(false)} />
     </>
   );

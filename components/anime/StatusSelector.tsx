@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableWithoutFeedback, Animated, PanResponder } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableWithoutFeedback, Animated, PanResponder } from 'react-native';
 import { AnimeStatus, STATUS_COLORS, STATUS_LABELS, ShikimoriInfo } from '@/types/anime';
 import { useAnimeStore } from '@/store/anime-store';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useThemeStore } from '@/store/theme-store';
+import Focusable from '@/components/Focusable';
 
 interface StatusSelectorProps {
   anime: ShikimoriInfo;
@@ -92,11 +93,11 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
   return (
     <>
       {!onClose && (
-        <Pressable
+        <Focusable
           style={[
             styles.button,
             {
-              backgroundColor: currentStatus ? (colors.card) : colors.primary,
+              backgroundColor: currentStatus ? (colors.surfaceVariant) : colors.primary,
               borderWidth: currentStatus ? 2 : 0,
               borderColor: currentStatus ? activeColor : 'transparent'
             }
@@ -111,7 +112,7 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
           <Text style={[styles.buttonText, { color: currentStatus ? activeColor : '#fff' }]}>
             {activeLabel}
           </Text>
-        </Pressable>
+        </Focusable>
       )}
 
       <Modal
@@ -126,7 +127,7 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
               <Animated.View style={[
                 styles.modalContent,
                 {
-                  backgroundColor: colors.tabBar,
+                  backgroundColor: colors.surface,
                   transform: [{ translateY }]
                 }
               ]}>
@@ -144,7 +145,7 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
                 </View>
 
                 {visible && statuses.map((status) => (
-                  <Pressable
+                  <Focusable
                     key={status}
                     style={[
                       styles.option,
@@ -161,13 +162,13 @@ export default function StatusSelector({ anime, visible: externalVisible, onClos
                     ]}>
                       {STATUS_LABELS[status]}
                     </Text>
-                  </Pressable>
+                  </Focusable>
                 ))}
 
-                <Pressable style={styles.removeOption} onPress={handleRemove}>
+                <Focusable style={styles.removeOption} onPress={handleRemove}>
                   <MaterialCommunityIcons name="delete-outline" size={24} color={colors.subtext} />
                   <Text style={[styles.optionText, { color: colors.subtext }]}>Убрать из списка</Text>
-                </Pressable>
+                </Focusable>
               </Animated.View>
             </TouchableWithoutFeedback>
           </View>

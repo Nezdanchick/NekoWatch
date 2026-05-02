@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef} from 'react';
-import { StyleSheet, Text, View, ScrollView, Image, Pressable, ActivityIndicator, FlatList, useWindowDimensions, StatusBar, Animated} from 'react-native';
+import { StyleSheet, Text, View, ScrollView, Image, ActivityIndicator, FlatList, useWindowDimensions, StatusBar, Animated} from 'react-native';
 import { Stack, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { fetchAnimeDetails, fetchRelatedAnime } from '@/services/shikimori-api';
 import { searchKodikByShikimoriId } from '@/services/kodik-api';
@@ -11,6 +11,7 @@ import AnimeCard from '@/components/AnimeCard';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import Focusable from '@/components/Focusable';
 
 const DESCRIPTION_PLACEHOLDER = "Описание отсутствует.";
 const ANIME_CACHE_KEY = 'kodikCache';
@@ -329,40 +330,40 @@ export default function AnimeDetailsScreen() {
             </View>
           )}
 
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <Focusable style={styles.backButton} onPress={() => router.back()} focusScale={1.15}>
             <View style={styles.iconBackdrop}>
               <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
             </View>
-          </Pressable>
+          </Focusable>
         </View>
 
         <View style={styles.contentContainer}>
           <View style={styles.titleSection}>
-            <Pressable onPress={() => setTitleExpanded(!isTitleExpanded)}>
+            <Focusable onPress={() => setTitleExpanded(!isTitleExpanded)}>
               <Text
                 style={[styles.title, { color: colors.text }]}
                 numberOfLines={isTitleExpanded ? undefined : 2}
               >
                 {shikimori?.russian || shikimori?.name || 'Название отсутствует'}
               </Text>
-            </Pressable>
+            </Focusable>
             <Text style={[styles.originalTitle, { color: colors.subtext }]}>
               {shikimori?.name || ''}
             </Text>
 
             <View style={styles.metaInfo}>
-              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+              <View style={[styles.badget, { backgroundColor: colors.surfaceVariant }]}>
                 <MaterialCommunityIcons name="star" size={14} color="#FFD700" style={{ marginRight: 4 }} />
                 <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.score.toFixed(1).toString()}</Text>
               </View>
-              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+              <View style={[styles.badget, { backgroundColor: colors.surfaceVariant }]}>
                 <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.kind.toUpperCase()}</Text>
               </View>
-              <View style={[styles.badget, { backgroundColor: colors.card }]}>
+              <View style={[styles.badget, { backgroundColor: colors.surfaceVariant }]}>
                 <Text style={[styles.badgetText, { color: colors.text }]}>{shikimori.airedOn?.date || ''}</Text>
               </View>
               {canShowSeries(shikimori) && kodik[0]?.material_data && (
-                <View style={[styles.badget, { backgroundColor: colors.card }]}>
+                <View style={[styles.badget, { backgroundColor: colors.surfaceVariant }]}>
                   <Text style={[styles.badgetText, { color: colors.text }]}>
                     {`${kodik[0].material_data.episodes_aired || '?'}/${kodik[0].material_data.episodes_total || '?'}`}
                   </Text>
@@ -374,7 +375,7 @@ export default function AnimeDetailsScreen() {
           <AnimeButtons shikimori={shikimori} kodik={kodik} />
 
           {animeDescription && (
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={[styles.section, { backgroundColor: colors.surface }]}>
               <Text style={[styles.sectionHeader, { color: colors.text }]}>Описание</Text>
               <Text style={[styles.descriptionText, { color: colors.subtext }]}>
                 {animeDescription}
@@ -383,7 +384,7 @@ export default function AnimeDetailsScreen() {
           )}
 
           {relatedAnime.length > 0 && (
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={[styles.section, { backgroundColor: colors.surface }]}>
               <Text style={[styles.sectionHeader, { color: colors.text, marginBottom: 16, marginLeft: 4 }]}>Связанное</Text>
               <FlatList
                 data={relatedAnime.filter(anime => canShow(anime))
@@ -489,7 +490,7 @@ const styles = StyleSheet.create({
   badget: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -502,6 +503,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
+    elevation: 1,
   },
   sectionHeader: {
     fontSize: 20,

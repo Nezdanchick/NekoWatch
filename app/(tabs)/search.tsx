@@ -7,6 +7,8 @@ import { ShikimoriInfo, canShow } from '@/types/anime';
 import SearchBar from '@/components/SearchBar';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
+import { usePlatform } from '@/hooks/usePlatform';
+import ContentContainer from '@/components/ContentContainer';
 
 const minimalQueryLength = 2;
 
@@ -20,6 +22,7 @@ export default function SearchScreen() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const searchBarRef = useRef<TextInput>(null);
   const { colors } = useThemeStore();
+  const { numColumns, gridCardWidth } = usePlatform();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -81,14 +84,15 @@ export default function SearchScreen() {
   };
 
   const renderItem = ({ item }: { item: ShikimoriInfo }) => (
-    <View style={styles.cardContainer}>
-      <AnimeCard anime={item} />
+    <View style={[styles.cardContainer, { width: gridCardWidth + 12 }]}>
+      <AnimeCard anime={item} cardWidth={gridCardWidth} />
     </View>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <SearchBar
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ContentContainer>
+        <SearchBar
         ref={searchBarRef}
         value={searchQuery}
         onChangeText={setSearchQuery}
@@ -112,7 +116,8 @@ export default function SearchScreen() {
           data={searchResults.filter(anime => canShow(anime))}
           renderItem={renderItem}
           keyExtractor={(item, index) => `${item.id}-${item.name}-${index}`}
-          numColumns={2}
+          numColumns={numColumns}
+          key={`search-${numColumns}`}
           contentContainerStyle={styles.listContent}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
@@ -126,6 +131,7 @@ export default function SearchScreen() {
           }
         />
       )}
+      </ContentContainer>
     </SafeAreaView>
   );
 }
@@ -139,7 +145,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   cardContainer: {
-    width: '50%',
     alignItems: 'center',
     padding: 4,
   },

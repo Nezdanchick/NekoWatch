@@ -1,10 +1,13 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { StyleSheet, View, Text, FlatList, Pressable, ScrollView, useWindowDimensions, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
+import { StyleSheet, View, Text, FlatList, ScrollView, useWindowDimensions, NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAnimeStore } from '@/store/anime-store';
 import AnimeCard from '@/components/AnimeCard';
 import { useThemeStore } from '@/store/theme-store';
 import { ShikimoriInfo, AnimeStatus, STATUS_LABELS, STATUS_COLORS } from '@/types/anime';
+import Focusable from '@/components/Focusable';
+import { usePlatform } from '@/hooks/usePlatform';
+import ContentContainer from '@/components/ContentContainer';
 
 type FilterType = AnimeStatus | 'all';
 
@@ -14,6 +17,7 @@ export default function BookmarksScreen() {
   const { width } = useWindowDimensions();
   const { colors } = useThemeStore();
   const { bookmarks, bookmarksData } = useAnimeStore();
+  const { numColumns, gridCardWidth } = usePlatform();
   
   const [activeIndex, setActiveIndex] = useState(0);
   const pagerRef = useRef<FlatList>(null);
@@ -70,8 +74,8 @@ export default function BookmarksScreen() {
     const filteredData = getFilteredData(filter);
     
     const renderAnimeItem = ({ item }: { item: ShikimoriInfo }) => (
-      <View style={styles.cardContainer}>
-        <AnimeCard anime={item} />
+      <View style={[styles.cardContainer, { width: gridCardWidth + 12 }]}>
+        <AnimeCard anime={item} cardWidth={gridCardWidth} />
       </View>
     );
 
@@ -93,7 +97,8 @@ export default function BookmarksScreen() {
           data={filteredData}
           renderItem={renderAnimeItem}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={3}
+          numColumns={numColumns}
+          key={`fav-${numColumns}`}
           contentContainerStyle={styles.listContent}
         />
       </View>
@@ -101,8 +106,9 @@ export default function BookmarksScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Закладки</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      <ContentContainer style={{ flex: 0 }}>
+        <Text style={[styles.title, { color: colors.text }]}>Закладки</Text>
       
       <View style={styles.filterContainer}>
         <ScrollView 
@@ -120,14 +126,14 @@ export default function BookmarksScreen() {
                   if (ref) filterRefs.current[index] = ref;
                 }}
               >
-                <Pressable
+                <Focusable
                   style={[
                     styles.filterChip,
                     {
-                      borderColor: filter === 'all' ? colors.border : STATUS_COLORS[filter as AnimeStatus],
+                      borderColor: filter === 'all' ? colors.outline : STATUS_COLORS[filter as AnimeStatus],
                       backgroundColor: isActive
                         ? (filter === 'all' ? colors.primary : STATUS_COLORS[filter as AnimeStatus])
-                        : 'transparent',
+                        : colors.surface,
                       borderWidth: 1,
                     },
                   ]}
@@ -141,12 +147,13 @@ export default function BookmarksScreen() {
                   >
                     {filter === 'all' ? 'Все' : STATUS_LABELS[filter as AnimeStatus]}
                   </Text>
-                </Pressable>
+                </Focusable>
               </View>
             );
           })}
         </ScrollView>
       </View>
+      </ContentContainer>
 
       <FlatList
         ref={pagerRef}
@@ -205,7 +212,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   cardContainer: {
-    width: '50%',
     alignItems: 'center',
   },
   centerContainer: {
