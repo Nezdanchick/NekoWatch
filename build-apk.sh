@@ -1,39 +1,54 @@
 #!/bin/sh
+# Сборка APK для Flutter-версии NekoWatch.
+# Использование: ./build-apk.sh [debug|release|split]
+#   debug   — быстрый отладочный APK
+#   release — релизный APK (по умолчанию)
+#   split   — отдельные APK под каждую ABI (меньше вес)
 
-# Установка зависимостей (если требуется)
-# sudo npm install -g bun eas-cli expo-cli
+set -e
 
-# Профиль сборки APK
-default_profile="development" # preview, development, production
-if [ -n "$1" ]; then
-  profile="$1"
-else
-  profile="$default_profile"
+profile="${1:-release}"
+
+# --- Проверки окружения ---
+if ! command -v flutter >/dev/null 2>&1; then
+  echo "❌ Flutter SDK не найден. Установите: https://docs.flutter.dev/get-started/install"
+  exit 1
 fi
 
-if [ -z "$ANDROID_SDK_ROOT" ]; then
-    echo "❌ ANDROID_SDK_ROOT не установлен. Установите Android Studio и настройте переменные окружения."
+if [ -z "$ANDROID_SDK_ROOT" ] && [ -z "$ANDROID_HOME" ]; then
+  echo "❌ ANDROID_SDK_ROOT/ANDROID_HOME не установлен. Установите Android Studio и настройте переменные окружения."
+  exit 1
+fi
+
+# --- Первый запуск: генерация нативных папок ---
+if [ ! -d "android" ]; then
+  echo "📦 Нативные папки не найдены, генерирую..."
+  flutter create --platforms=android,ios --org ru.nekoteam --project-name nekowatch .
+fi
+
+echo "📥 Загрузка зависимостей..."
+flutter pub get
+
+echo "🔍 Анализ кода..."
+flutter analyze || echo "⚠️  Анализатор нашёл замечания, продолжаю сборку."
+
+echo "🔨 Сборка APK (профиль: $profile)..."
+case "$profile" in
+  debug)
+    flutter build apk --debug
+    ;;
+  split)
+    flutter build apk --release --split-per-abi
+    ;;
+  release)
+    flutter build apk --release
+    ;;
+  *)
+    echo "❌ Неизвестный профиль: $profile (ожидается debug, release или split)"
     exit 1
-fi
+    ;;
+esac
 
-# Версия NDK
-NDK_VERSION="26.1.10909125"
-NDK_PATH="$ANDROID_SDK_ROOT/ndk/$NDK_VERSION"
-
-# Устанавливаем NDK, если его нет
-if [ ! -d "$NDK_PATH" ]; then
-    echo "🔍 Установка зависимостей для сборки под Android..."
-    sudo $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "ndk;$NDK_VERSION" --sdk_root=$ANDROID_SDK_ROOT
-    sudo $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;35.0.0" "platforms;android-35"
-    sudo $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;35.0.0" "platforms;android-35" --channel=2
-    sudo $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "build-tools;34.0.0" "platforms;android-34"
-    sudo $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --install "cmake;3.22.1"
-fi
-
-export ANDROID_NDK_HOME=$NDK_PATH
-
-echo "ANDROID_NDK_HOME установлен в $NDK_PATH"
-
-build_cmd="eas build --platform android --profile $profile"
-
-$build_cmd
+echo ""
+echo "✅ Готово. APK лежит в:"
+ls -lh build/app/outputs/flutter-apk/*.apk 2>/dev/null || true

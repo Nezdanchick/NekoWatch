@@ -1,85 +1,113 @@
-<span style="display:block;text-align:center">![logo](./assets/images/title.png)</span>
-<span style="display:block;text-align:center">[![telegram](https://img.shields.io/badge/NekoWatch-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/NekoWatch_App)</span>
+# NekoWatch (Flutter, Material 3)
 
-Приложение для просмотра аниме, разработанное на React Native, позволяет пользователям удобно просматривать любимые тайты с мобильных устройств. Оно предлагает интуитивно понятный интерфейс, быструю загрузку контента и возможность выбора субтитров или дубляжа.
+Полный переезд UI аниме-приложения NekoWatch с React Native (Expo) на Flutter с
+Material Design 3. Логика бэкенда (Shikimori GraphQL, Kodik, Collaps) и плеера
+перенесена 1:1 из исходного RN-проекта.
 
-## Скриншоты
-<table>
-  <tr style="display: flex; flex-wrap: wrap; justify-content: center;">
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/1.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/2.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/3.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/4.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/5.jpg" width="250"></td>
-    <td style="padding: 5px;"><img src="https://github.com/Nezdanchick/NekoWatch/blob/master/screenshots/6.jpg" width="250"></td>
-  </tr>
-</table>
+**Документация:**
 
+- `DOCUMENTATION.md` — подробный разбор проекта: архитектура, каждый файл,
+  сквозные сценарии, рецепты изменений, отладка. Начните отсюда.
+- `AGENTS.md` — сжатая справка для ИИ-ассистентов: инварианты, ловушки,
+  список того, что ломать нельзя.
 
-## Содержание
-- [Содержание](#содержание)
-- [Скриншоты](#скриншоты)
-- [Технологии](#технологии)
-- [Использование](#использование)
-- [TODO](#todo)
-- [Команда проекта](#команда-проекта)
-  - [Зачем вы разработали этот проект?](#зачем-вы-разработали-этот-проект)
-- [Как собрать?](#как-собрать)
-  - [Получите и замените Kodik токен в файле types/kodik-token.ts](#получите-и-замените-kodik-токен-в-файле-typeskodik-tokents)
-  - [Установите зависимости](#установите-зависимости)
-  - [Запустите сборку](#запустите-сборку)
+## Стек
 
-## Технологии
-- [React Native](https://reactnative.dev/)
-- [Shikimori API](https://shikimori.one/api/doc)
-- Kodik API
+- **Flutter** 3.24+, **Dart** 3.5+, `useMaterial3: true`
+- **State management** — Riverpod (`flutter_riverpod`, `StateNotifier`)
+- **Персистентность** — Hive (`hive_flutter`)
+- **Навигация** — `go_router`
+- **Плеер** — `webview_flutter` (WebView, не нативный видеоплеер)
+- **Тема** — `ColorScheme.fromSeed(seedColor: #7B68EE)` + Material You через `dynamic_color`
 
-## Использование
-1) Скачать
-2) Установить 
-3) Пользоваться
+## Первый запуск
 
-## TODO
-- [x] Добавление списка просмотренных аниме
-- [x] Скрытие свайпом плашки с последним просмотренным аниме
-- [x] Починка описаний серий
-- [x] Квадратная кнопка просмотра справа от смотреть (без выбора озвучки)
-- [x] Скрытие навбара и статус бара
-- [x] Добавить темы
-- [x] Кнопка "все" для показа большого списка тайтлов
-- [ ] Добавить плеер хентая
-- [ ] Добавить фильтры поиска
-- [ ] Добавть историю поиска
-- [ ] Добавть раздел "связанное" на страницу аниме
-- [ ] Редизайн(новые карточки, material you, редизайн страниц)
-- [ ] Заменить избранное на закладки(просмотрено, в планах и тд....) перенести туда историю, сделать полноценные настройки
-- [ ] Добавить альтернативные плееры
-- [ ] Добавить веб версию
+В этом репозитории уже есть весь код Dart (`lib/`), `pubspec.yaml`,
+`analysis_options.yaml` и ассеты (`assets/images/`), но отсутствуют нативные
+обвязки `android/` и `ios/` — они генерируются локально командой:
 
+```bash
+flutter create --platforms=android,ios --org ru.nekoteam --project-name nekowatch .
+```
 
-## Команда проекта
-- https://github.com/Nezdanchick
-- https://github.com/W1neus
+Эта команда создаст папки `android/` и `ios/` (и служебные файлы вроде
+`.metadata`, `.gitignore`), **не трогая** существующий `lib/`, `pubspec.yaml`
+и ассеты — flutter create безопасно домержит недостающие нативные проекты в
+уже существующий пакет.
 
-### Зачем вы разработали этот проект?
-Делать было нехуй
+После этого:
 
-## Как собрать?
+```bash
+flutter pub get
+flutter run
+```
 
-### Получите и замените Kodik токен в файле types/kodik-token.ts
+### Android-манифест
 
-### Установите зависимости
+После генерации `android/` убедитесь, что в
+`android/app/src/main/AndroidManifest.xml` есть:
 
-> sudo npm install -g @expo/ngrok@^4.1.0   
-  sudo npm install -g bun   
-  sudo npx expo install react-native-web   
-  sudo npm install -g eas-cli   
-  sudo npx expo install expo-dev-client   
-  sudo npm install -g expo-dev-launcher   
-  sudo npm install -g react-native-vector-icons  
- 
-### Запустите сборку
+```xml
+<uses-permission android:name="android.permission.INTERNET"/>
+```
 
-> ./build-apk.sh # для debug сборки
+и что у тега `<application>` **не** выставлен
+`android:usesCleartextTraffic="true"` (в проекте это не требуется — все
+запросы идут по HTTPS): `usesCleartextTraffic="false"` или атрибут вовсе не
+указан.
 
-> ./build-apk.sh preview # для release сборки 
+`minSdkVersion 21`, `compileSdk 34` — при необходимости поправьте в
+`android/app/build.gradle`.
+
+### Иконка и сплэш
+
+`assets/images/icon.png` и `assets/images/title.png` скопированы из RN-проекта
+один в один. Подключение через `flutter_launcher_icons`/`flutter_native_splash`
+не входит в этот перенос UI и может быть добавлено отдельно.
+
+## Структура
+
+```
+lib/
+├── main.dart              — точка входа, инициализация Hive, DynamicColorBuilder
+├── router.dart             — go_router: ShellRoute с NavigationBar + маршруты
+├── models/                 — ShikimoriInfo, KodikInfo, AnimeStatus, WatchHistoryItem
+├── services/                — shikimori_api, kodik_api, collaps_api, local_storage (Hive)
+├── providers/                — anime/theme/time/home/search state (Riverpod)
+├── theme/                    — MD3-тема, статусные цвета
+├── screens/                   — экраны приложения
+└── widgets/                    — переиспользуемые виджеты (карточки, карусели, история)
+```
+
+## Проверка качества
+
+Код написан вручную с учётом идиом Dart 3 / Flutter 3.24 (const, final,
+null-safety, современные MD3-виджеты, `withValues(alpha:)` вместо
+`withOpacity`, `surfaceContainer*` вместо `background`/`surfaceVariant`).
+Т.к. в песочнице недоступен Flutter SDK, `dart analyze`/`dart format` не
+запускались — после `flutter pub get` рекомендуется прогнать:
+
+```bash
+dart format .
+flutter analyze
+```
+
+## Известные места, требующие проверки человеком после генерации нативных проектов
+
+- `AnimeMetaRow` (`lib/widgets/anime/anime_meta_row.dart`) реализован по
+  мотивам `AnimeInfo.tsx`, но в `AnimeDetailsScreen` мета-строка (★/KIND/год)
+  реализована отдельным набором `Chip` согласно §6.5 плана — виджет
+  `AnimeMetaRow` пока не подключён ни к одному экрану напрямую (в RN-версии
+  `AnimeInfo` тоже нигде не рендерился в `[id].tsx`, несмотря на импорт).
+  Оставлен как самостоятельный виджет на будущее, полностью рабочий.
+- Иконка `Icons.code` используется как замена `GithubIcon.tsx` (см. план,
+  п. 1.2 — «проще использовать встроенную иконку»).
+- Автофокус `SearchBar` на экране поиска выполняется в `initState`
+  (`WidgetsBinding.instance.addPostFrameCallback`), так как `go_router`
+  с простым `ShellRoute` пересоздаёт экран при каждом переходе на вкладку
+  (аналог `useFocusEffect` в RN).
+- Если требуется полностью сохранять состояние вкладок между переключениями
+  (как во вкладках `expo-router` `Tabs`), стоит заменить `ShellRoute` на
+  `StatefulShellRoute.indexedShell` — сейчас вкладки пересоздаются заново
+  при каждом переходе, что немного отличается от RN-поведения (там табы
+  держат состояние благодаря React Navigation).
